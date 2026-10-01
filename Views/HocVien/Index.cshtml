@@ -1,0 +1,36 @@
+@* Họ và tên: Nguyễn Văn Giáp
+   Mã sinh viên: 22103100110
+   Nội dung thực hiện: Trang xem hồ sơ cá nhân học viên. *@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.HoSoCaNhanViewModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<partial name="~/Views/HocVien/_MenuHocVien.cshtml" />
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Hồ sơ cá nhân</h1>
+    <a asp-action="CapNhatHoSo" class="btn btn-primary">Cập nhật hồ sơ</a>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.HoTen)</dt>
+    <dd class="col-sm-9">@Model.HoTen</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NgaySinh)</dt>
+    <dd class="col-sm-9">@Model.NgaySinh.ToString("dd/MM/yyyy")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.GioiTinh)</dt>
+    <dd class="col-sm-9">@Model.GioiTinh</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.SoDienThoai)</dt>
+    <dd class="col-sm-9">@(Model.SoDienThoai ?? "Chưa cập nhật")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Email)</dt>
+    <dd class="col-sm-9">@(Model.Email ?? "Chưa cập nhật")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.DiaChi)</dt>
+    <dd class="col-sm-9">@(Model.DiaChi ?? "Chưa cập nhật")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.TrinhDoHienTai)</dt>
+    <dd class="col-sm-9">@(Model.TrinhDoHienTai ?? "Chưa cập nhật")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NgheNghiep)</dt>
+    <dd class="col-sm-9">@(Model.NgheNghiep ?? "Chưa cập nhật")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.SoThangDaHoc)</dt>
+    <dd class="col-sm-9">@Model.SoThangDaHoc tháng</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.MucTieuHoc)</dt>
+    <dd class="col-sm-9">@(Model.MucTieuHoc ?? "Chưa cập nhật")</dd>
+</dl>
