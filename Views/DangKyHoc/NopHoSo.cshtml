@@ -1,0 +1,32 @@
+@* Họ và tên: Nguyễn Văn Giáp
+   Mã sinh viên: 22103100110
+   Nội dung thực hiện: Trang nộp hồ sơ đăng ký học. *@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.NopHoSoDangKyViewModel
+@{
+    ViewData["Title"] = "Nộp hồ sơ đăng ký";
+}
+
+<partial name="~/Views/HocVien/_MenuHocVien.cshtml" />
+<h1>Nộp hồ sơ đăng ký học</h1>
+<dl class="row">
+    <dt class="col-sm-3">Lớp học</dt>
+    <dd class="col-sm-9">@ViewBag.TenLop</dd>
+    <dt class="col-sm-3">Chương trình</dt>
+    <dd class="col-sm-9">@ViewBag.TenChuongTrinh</dd>
+</dl>
+<form asp-action="NopHoSo" method="post">
+    <input type="hidden" name="maLop" value="@Context.Request.Query["maLop"]" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="LyDoDangKy" class="form-label"></label>
+        <textarea asp-for="LyDoDangKy" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="LyDoDangKy" class="text-danger"></span>
+    </div>
+    <p>Ngày nộp và trạng thái hồ sơ do hệ thống tự xác định. Hồ sơ mới có trạng thái “Chờ duyệt”.</p>
+    <button type="submit" class="btn btn-primary">Xác nhận nộp hồ sơ</button>
+    <a asp-action="LopDangMo" class="btn btn-outline-secondary">Quay lại danh sách lớp</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,10 +1,14 @@
-﻿@using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+﻿@* Họ và tên: Nguyễn Văn Giáp
+   Mã sinh viên: 22103100110
+   Nội dung thực hiện: Bổ sung menu điều hướng học viên cho Module 3. *@
+@using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
 @using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
 @{
     var vaiTro = Context.Session.GetString(SessionKeys.VaiTro);
     var hoTen = Context.Session.GetString(SessionKeys.HoTen);
     var laAdmin = vaiTro == VaiTroTaiKhoan.Admin;
     var laNhanVien = vaiTro == VaiTroTaiKhoan.NhanVienDaoTao;
+    var laHocVien = vaiTro == VaiTroTaiKhoan.HocVien;
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -31,9 +35,24 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="LopHoc" asp-action="Index">Lớp học</a>
-                        </li>
+                        @if (laHocVien)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="HocVien" asp-action="Index">Hồ sơ cá nhân</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="DangKyHoc" asp-action="LopDangMo">Lớp đang mở</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="DangKyHoc" asp-action="HoSoCuaToi">Hồ sơ đăng ký</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="LopHoc" asp-action="Index">Lớp học</a>
+                            </li>
+                        }
 
                         @if (laAdmin)
                         {
