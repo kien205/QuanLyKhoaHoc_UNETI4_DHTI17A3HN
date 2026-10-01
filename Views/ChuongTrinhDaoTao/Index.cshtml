@@ -1,0 +1,54 @@
+@model IEnumerable<QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.ChuongTrinhDaoTao>
+
+@{
+    ViewData["Title"] = "Chương trình đào tạo";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Chương trình đào tạo</h2>
+    <a asp-action="Create" class="btn btn-primary">Thêm chương trình</a>
+</div>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Tên chương trình</th>
+            <th>Mô tả</th>
+            <th>Email liên hệ</th>
+            <th>Số lớp học</th>
+            <th>Trạng thái</th>
+            <th style="width: 260px;">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TenChuongTrinhDaoTao</td>
+                <td>@item.MoTa</td>
+                <td>@item.EmailLienHe</td>
+                <td>@item.LopHocs.Count</td>
+                <td>
+                    @if (item.TrangThai)
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Ngừng</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.MaChuongTrinhDaoTao" class="btn btn-sm btn-outline-info">Chi tiết</a>
+                    <a asp-action="Edit" asp-route-id="@item.MaChuongTrinhDaoTao" class="btn btn-sm btn-outline-primary">Sửa</a>
+                    <a asp-action="Delete" asp-route-id="@item.MaChuongTrinhDaoTao" class="btn btn-sm btn-outline-danger">Xóa</a>
+                    <form asp-action="DoiTrangThai" asp-route-id="@item.MaChuongTrinhDaoTao" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            @(item.TrangThai ? "Ngừng" : "Bật")
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
