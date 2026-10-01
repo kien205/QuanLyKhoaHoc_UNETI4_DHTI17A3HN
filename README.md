@@ -23,11 +23,9 @@ uy ước Entity và Migration
 ##Quy ước Git
 
 - Nhánh `main` luôn build được. Mỗi người làm trên nhánh riêng:
-  - `module1-taikhoan`, `module2-lophoc`, `module3-hocvien`, `module4-xetduyet`, `module5-lich-thongke`
 - Làm xong một phần: push nhánh, tạo Pull Request vào `main`, nhờ một bạn xem lại rồi merge.
 - Trước khi làm tiếp mỗi ngày: `git pull origin main`.
 - Mẫu commit: `[Mã SV] [Module] Nội dung công việc`
-  Ví dụ: `[22103100001] [LopHoc] Them chuc nang phan trang`
 - Commit nhỏ, thường xuyên. Không dồn vào một commit cuối.
 - Không commit `bin/`, `obj/`, `.vs/`.
 
