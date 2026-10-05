@@ -43,8 +43,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN
             app.UseSession();          
             app.UseAuthorization();
 
-            app.UseAuthorization();
-
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",

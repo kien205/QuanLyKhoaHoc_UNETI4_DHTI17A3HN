@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data

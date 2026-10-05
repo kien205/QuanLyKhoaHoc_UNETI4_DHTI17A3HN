@@ -1,0 +1,64 @@
+﻿@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
+@model IEnumerable<QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LichKiemTraDauVao>
+
+@{
+    ViewData["Title"] = "Lịch kiểm tra đầu vào";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Lịch kiểm tra đầu vào</h2>
+    <a asp-action="Create" class="btn btn-primary">Lập lịch</a>
+</div>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Học viên</th>
+            <th>Lớp học</th>
+            <th>Giáo viên</th>
+            <th>Bắt đầu</th>
+            <th>Kết thúc</th>
+            <th>Trạng thái</th>
+            <th style="width: 200px;">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.HoSoDangKyHoc?.HocVien?.HoTen</td>
+                <td>@item.HoSoDangKyHoc?.LopHoc?.TenLop</td>
+                <td>@item.GiaoVienKiemTra</td>
+                <td>@item.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@item.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    @if (item.TrangThai == TrangThaiLich.DaLenLich)
+                    {
+                        <span class="badge bg-primary">@item.TrangThai</span>
+                    }
+                    else if (item.TrangThai == TrangThaiLich.DaHoanThanh)
+                    {
+
+                        <span class="badge bg-success">@item.TrangThai</span>
+                    }
+                    else
+                    {
+
+                        <span class="badge bg-secondary">@item.TrangThai</span>
+                    }
+                </td>
+                <td>
+                    @if (item.TrangThai == TrangThaiLich.DaLenLich)
+                    {
+                        <form asp-action="HoanThanh" asp-route-id="@item.MaLichKiemTraDauVao" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-success">Hoàn thành</button>
+                        </form>
+                        <form asp-action="Huy" asp-route-id="@item.MaLichKiemTraDauVao" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
