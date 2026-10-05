@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Họ và tên: Hà Trung Kiên
+// Mã sinh viên: 23103100058
+// Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
 

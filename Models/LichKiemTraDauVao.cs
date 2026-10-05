@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// Họ và tên: Hà Trung Kiên
+// Mã sinh viên: 23103100058
+// Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
+using System.ComponentModel.DataAnnotations;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models

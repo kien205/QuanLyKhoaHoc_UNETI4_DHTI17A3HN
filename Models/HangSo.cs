@@ -1,4 +1,7 @@
-﻿namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+﻿// Họ và tên: Hà Trung Kiên
+// Mã sinh viên: 23103100058
+// Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
+namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
 {
     public class HangSo
     {

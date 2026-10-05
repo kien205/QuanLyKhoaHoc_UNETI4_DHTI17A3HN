@@ -1,6 +1,6 @@
-﻿// Họ và tên: ...
-// Mã sinh viên: ...
-// Nội dung thực hiện: Dữ liệu mẫu cho toàn hệ thống.
+﻿// Họ và tên: Hà Trung Kiên
+// Mã sinh viên: 23103100058
+// Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
 
 using Microsoft.EntityFrameworkCore;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
