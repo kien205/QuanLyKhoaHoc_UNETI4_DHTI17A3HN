@@ -16,7 +16,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [HttpGet]
         public IActionResult DangNhap(string? returnUrl) 
         { 
-            ViewBag.ReturnUrl = returnUrl; return View(); 
+            ViewBag.ReturnUrl = returnUrl;
+            return View(); 
         }
 
         [HttpPost, ValidateAntiForgeryToken]

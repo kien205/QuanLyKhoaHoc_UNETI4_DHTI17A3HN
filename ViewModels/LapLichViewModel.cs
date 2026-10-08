@@ -41,7 +41,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels
         [Display(Name = "Ghi chú")]
         public string? GhiChu { get; set; }
 
-        // Chỉ để đổ dữ liệu ra select, không phải dữ liệu người dùng nhập
         public IEnumerable<SelectListItem>? DanhSachHoSo { get; set; }
     }
 }

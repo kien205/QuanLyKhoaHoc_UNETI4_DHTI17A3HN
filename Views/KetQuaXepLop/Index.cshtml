@@ -1,0 +1,47 @@
+﻿@using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+@model IEnumerable<KetQuaXepLop>
+
+@{
+    ViewData["Title"] = "Kết quả xếp lớp";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Kết quả xếp lớp</h2>
+    <a asp-action="Create" class="btn btn-primary">Nhập kết quả</a>
+</div>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Học viên</th>
+            <th>Lớp học</th>
+            <th>Điểm đánh giá</th>
+            <th>Kết quả</th>
+            <th>Nhận xét</th>
+            <th>Ngày cập nhật</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.HoSoDangKyHoc?.HocVien?.HoTen</td>
+                <td>@item.HoSoDangKyHoc?.LopHoc?.TenLop</td>
+                <td>@item.DiemDanhGia</td>
+                <td>
+                    @if (item.KetQua == HangSo.TrangThaiHoSo.DuocXepLop)
+                    {
+                        <span class="badge bg-success">@item.KetQua</span>
+                    }
+                    else
+                    {
+
+                        <span class="badge bg-secondary">@item.KetQua</span>
+                    }
+                </td>
+                <td>@item.NhanXet</td>
+                <td>@item.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -158,7 +158,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var ctdt = await _context.ChuongTrinhDaoTaos.FindAsync(id);
             if (ctdt == null) return NotFound();
 
-            // Không xóa nếu còn lớp học thuộc chương trình này
+  
             if (await _context.LopHocs.AnyAsync(l => l.MaChuongTrinhDaoTao == id))
             {
                 TempData["Loi"] = "Không thể xóa: chương trình đào tạo đang có lớp học liên quan.";
