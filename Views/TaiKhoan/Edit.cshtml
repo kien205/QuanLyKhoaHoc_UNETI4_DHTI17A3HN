@@ -1,0 +1,49 @@
+﻿@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.TaiKhoanEditViewModel
+
+@{
+    ViewData["Title"] = "Sửa tài khoản";
+}
+
+<h2>Sửa tài khoản</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" asp-route-id="@Model.MaTaiKhoan" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="MaTaiKhoan" />
+
+            <div class="mb-3">
+                <label asp-for="TenDangNhap" class="form-label"></label>
+                <input asp-for="TenDangNhap" class="form-control" readonly />
+            </div>
+            <div class="mb-3">
+                <label asp-for="HoTen" class="form-label"></label>
+                <input asp-for="HoTen" class="form-control" />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="VaiTro" class="form-label"></label>
+                <select asp-for="VaiTro" asp-items="(SelectList)ViewBag.DanhSachVaiTro" class="form-select"></select>
+                <span asp-validation-for="VaiTro" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="MatKhauMoi" class="form-label"></label>
+                <input asp-for="MatKhauMoi" class="form-control" />
+                <span asp-validation-for="MatKhauMoi" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Cập nhật</button>
+            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

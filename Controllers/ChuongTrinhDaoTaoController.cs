@@ -27,10 +27,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                     .Include(c => c.LopHocs)
                     .OrderBy(c => c.TenChuongTrinhDaoTao)
                     .ToListAsync();
+
             return View(ds);
         }
 
-        // GET: ChuongTrinhDaoTao/Details/5
+        // GET: ChuongTrinhDaoTao/Details/{id}
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -73,7 +74,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return View(ctdt);
         }
 
-        // GET: ChuongTrinhDaoTao/Edit/5
+        // GET: ChuongTrinhDaoTao/Edit/{id}
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -84,7 +85,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return View(ctdt);
         }
 
-        // POST: ChuongTrinhDaoTao/Edit/5
+        // POST: ChuongTrinhDaoTao/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
@@ -121,7 +122,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return View(ctdt);
         }
 
-        // POST: ChuongTrinhDaoTao/DoiTrangThai/5  
+        // POST: ChuongTrinhDaoTao/DoiTrangThai/{id} 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DoiTrangThai(int id)
@@ -138,7 +139,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: ChuongTrinhDaoTao/Delete/5
+        // GET: ChuongTrinhDaoTao/Delete/{id}
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -150,7 +151,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return View(ctdt);
         }
 
-        // POST: ChuongTrinhDaoTao/Delete/5
+        // POST: ChuongTrinhDaoTao/Delete/{id}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -158,7 +159,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var ctdt = await _context.ChuongTrinhDaoTaos.FindAsync(id);
             if (ctdt == null) return NotFound();
 
-            // Không xóa nếu còn lớp học thuộc chương trình này
             if (await _context.LopHocs.AnyAsync(l => l.MaChuongTrinhDaoTao == id))
             {
                 TempData["Loi"] = "Không thể xóa: chương trình đào tạo đang có lớp học liên quan.";

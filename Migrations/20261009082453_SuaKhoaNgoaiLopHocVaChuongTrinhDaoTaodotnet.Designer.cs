@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 
@@ -11,9 +12,11 @@ using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261009082453_SuaKhoaNgoaiLopHocVaChuongTrinhDaoTaodotnet")]
+    partial class SuaKhoaNgoaiLopHocVaChuongTrinhDaoTaodotnet
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,8 +320,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("HoTen")
                         .IsRequired()
@@ -327,8 +330,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.Property<string>("MatKhau")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TenDangNhap")
                         .IsRequired()
@@ -344,9 +347,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.HasKey("MaTaiKhoan");
-
-                    b.HasIndex("TenDangNhap")
-                        .IsUnique();
 
                     b.ToTable("TaiKhoans");
                 });

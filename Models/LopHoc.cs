@@ -23,7 +23,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
         [StringLength(50)]
         public string TrinhDoDauVao { get; set; } = string.Empty;
 
-        [Range(0,10)]
+        [Range(0, 100)]
         public double DiemDauVao { get; set; }
         public DateTime NgayBatDauDangKy {  get; set; }
         public DateTime HanDangKy { get; set; }
