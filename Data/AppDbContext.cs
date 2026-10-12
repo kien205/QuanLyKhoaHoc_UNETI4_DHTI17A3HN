@@ -1,6 +1,7 @@
-﻿// Họ và tên: Hà Trung Kiên
+// Họ và tên: Hà Trung Kiên
 // Mã sinh viên: 23103100058
 // Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
+
 using Microsoft.EntityFrameworkCore;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
 
@@ -46,6 +47,18 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data
             modelBuilder.Entity<HoSoDangKyHoc>()
               .HasOne(h => h.KetQuaXepLop).WithOne(k => k.HoSoDangKyHoc)
               .HasForeignKey<KetQuaXepLop>(k => k.MaHoSo);
+
+            modelBuilder.Entity<HoSoDangKyHoc>()
+              .HasOne(h => h.HocVien).WithMany(v => v.HoSoDangKyHocs)
+              .HasForeignKey(h => h.MaHocVien);
+
+            modelBuilder.Entity<HoSoDangKyHoc>()
+                .HasOne(h => h.LopHoc).WithMany(l => l.hoSoDangKyHoc)
+                .HasForeignKey(h => h.MaLop);
+
+            modelBuilder.Entity<LopHoc>()
+                .HasOne(l => l.ChuongTrinhDaoTao).WithMany(c => c.LopHocs)
+                .HasForeignKey(l => l.MaChuongTrinhDaoTao);
 
             foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
                 fk.DeleteBehavior = DeleteBehavior.Restrict;

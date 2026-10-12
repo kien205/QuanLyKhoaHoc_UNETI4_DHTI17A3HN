@@ -1,0 +1,47 @@
+﻿@using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.NhapKetQuaViewModel
+
+@{
+    ViewData["Title"] = "Nhập kết quả xếp lớp";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Nhập kết quả xếp lớp</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+</div>
+
+<form asp-action="Create" method="post" style="max-width: 720px;">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+    <div class="mb-3">
+        <label asp-for="MaHoSo" class="form-label"></label>
+        <select asp-for="MaHoSo" asp-items="Model.DanhSachHoSo" class="form-select">
+            <option value="">-- Chọn hồ sơ --</option>
+        </select>
+        <span asp-validation-for="MaHoSo" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DiemDanhGia" class="form-label"></label>
+        <input asp-for="DiemDanhGia" type="number" step="0.1" min="0" max="100" class="form-control" />
+        <span asp-validation-for="DiemDanhGia" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="KetQua" class="form-label"></label>
+        <select asp-for="KetQua" class="form-select">
+            <option value="">-- Chọn kết quả --</option>
+            <option value="@HangSo.TrangThaiHoSo.DuocXepLop">@HangSo.TrangThaiHoSo.DuocXepLop</option>
+            <option value="@HangSo.TrangThaiHoSo.ChuaDuocXepLop">@HangSo.TrangThaiHoSo.ChuaDuocXepLop</option>
+        </select>
+        <span asp-validation-for="KetQua" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NhanXet" class="form-label"></label>
+        <textarea asp-for="NhanXet" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="NhanXet" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu kết quả</button>
+</form>

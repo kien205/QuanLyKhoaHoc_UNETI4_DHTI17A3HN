@@ -1,0 +1,82 @@
+﻿@* Họ và tên: Lê Đức Long *@
+@* Mã sinh viên: 23103100015 *@
+@* Nội dung thực hiện: 10 thống kê LINQ (View) *@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.ThongKeChiTietViewModel
+
+@{
+    ViewData["Title"] = "Thống kê chi tiết";
+
+    void Bang(string tieuDe, string cot, List<QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.ThongKeLopViewModel> ds)
+    {
+        <h5 class="mt-4">@tieuDe</h5>
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr><th>@cot</th><th style="width:140px;">Số lượng</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var d in ds)
+                {
+                    <tr><td>@d.TenLop</td><td>@d.TongHoSo</td></tr>
+                }
+                @if (!ds.Any())
+                {
+                    <tr><td colspan="2" class="text-muted">Chưa có dữ liệu.</td></tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Thống kê chi tiết</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">Về Dashboard</a>
+</div>
+
+@{
+    Bang("1. Số lớp học theo chương trình đào tạo", "Chương trình", Model.LopTheoChuongTrinh);
+}
+
+<h5 class="mt-4">2, 4, 9. Hồ sơ theo từng lớp học</h5>
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Lớp học</th>
+            <th>Tổng hồ sơ</th>
+            <th>Hồ sơ đủ điều kiện (đã qua duyệt)</th>
+            <th>Tỷ lệ qua xét duyệt</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var l in Model.HoSoTheoLop)
+        {
+            <tr>
+                <td>@l.TenLop</td>
+                <td>@l.TongHoSo</td>
+                <td>@l.DaQuaDuyet</td>
+                <td>@l.TyLeQuaDuyet% <small class="text-muted">(@l.DaQuaDuyet/@l.DaXetDuyet đã xét)</small></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@{
+    Bang("3. Số hồ sơ theo trạng thái", "Trạng thái", Model.HoSoTheoTrangThai);
+}
+@{
+    Bang("5. Lớp học nhận nhiều hồ sơ nhất", "Lớp học", Model.LopNhieuHoSoNhat);
+}
+@{
+    Bang("6. Số hồ sơ được xếp lớp theo chương trình đào tạo", "Chương trình", Model.XepLopTheoChuongTrinh);
+}
+@{
+    Bang("7. Số hồ sơ nộp theo tháng", "Tháng", Model.HoSoTheoThang);
+}
+@{
+    Bang("8. Số lịch kiểm tra đầu vào theo tháng", "Tháng", Model.LichTheoThang);
+}
+
+<h5 class="mt-4">10. Tỷ lệ hồ sơ được xếp lớp trên số hồ sơ đã kiểm tra đầu vào</h5>
+<div class="alert alert-info">
+    <strong>@Model.TyLeXepLop%</strong>
+    (@Model.SoDuocXepLop được xếp lớp / @Model.SoDaKiemTra hồ sơ đã có kết quả)
+</div>
