@@ -23,10 +23,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         private void NapVaiTro() => ViewBag.DanhSachVaiTro = new SelectList(DanhSachVaiTro);
 
         [HttpGet]
-        public IActionResult DangNhap(string? returnUrl) 
-        { 
+        public IActionResult DangNhap(string? returnUrl)
+        {
             ViewBag.ReturnUrl = returnUrl;
-            return View(); 
+            return View();
+        }
 
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult DangNhap(DangNhapViewModel model, string? returnUrl)
