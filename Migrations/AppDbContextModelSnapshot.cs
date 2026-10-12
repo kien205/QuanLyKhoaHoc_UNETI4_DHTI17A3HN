@@ -311,8 +311,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("HoTen")
                         .IsRequired()
@@ -321,8 +321,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.Property<string>("MatKhau")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("TenDangNhap")
                         .IsRequired()
@@ -338,6 +338,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.HasKey("MaTaiKhoan");
+
+                    b.HasIndex("TenDangNhap")
+                        .IsUnique();
 
                     b.ToTable("TaiKhoans");
                 });

@@ -1,0 +1,76 @@
+﻿@model IEnumerable<QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.TaiKhoan>
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
+
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+    var maHienTai = Context.Session.GetInt32(SessionKeys.MaTaiKhoan);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Quản lý tài khoản</h2>
+    <a asp-action="Create" class="btn btn-primary">Thêm tài khoản</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input name="tuKhoa" value="@ViewBag.TuKhoa" class="form-control" placeholder="Tìm theo tên đăng nhập, họ tên, email" />
+    </div>
+    <div class="col-md-3">
+        <select name="vaiTro" class="form-select">
+            <option value="">Tất cả vai trò</option>
+            @foreach (var vt in new[] { VaiTroTaiKhoan.Admin, VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.HocVien })
+            {
+                <option value="@vt" selected="@((string?)ViewBag.VaiTro == vt)">@vt</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-outline-primary">Tìm</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+    </div>
+</form>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th style="width: 180px;">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TenDangNhap</td>
+                <td>@item.HoTen</td>
+                <td>@item.Email</td>
+                <td>@item.VaiTro</td>
+                <td>
+                    @if (item.TrangThai)
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Bị khóa</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.MaTaiKhoan" class="btn btn-sm btn-outline-primary">Sửa</a>
+                    @if (item.MaTaiKhoan != maHienTai)
+                    {
+                        <form asp-action="DoiTrangThai" asp-route-id="@item.MaTaiKhoan" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                @(item.TrangThai ? "Khóa" : "Mở khóa")
+                            </button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

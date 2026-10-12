@@ -25,7 +25,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data
 
             modelBuilder.Entity<ChuongTrinhDaoTao>().HasIndex(c => c.TenChuongTrinhDaoTao).IsUnique();
 
-      
+            modelBuilder.Entity<TaiKhoan>().HasIndex(t => t.TenDangNhap).IsUnique();
+
+            modelBuilder.Entity<LopHoc>().HasOne(l => l.ChuongTrinhDaoTao)
+                .WithMany(c => c.LopHocs)
+                .HasForeignKey(l => l.MaChuongTrinhDaoTao);
             modelBuilder.Entity<TaiKhoan>()
               .HasOne(t => t.HocVien).WithOne(h => h.TaiKhoan)
               .HasForeignKey<HocVien>(h => h.MaTaiKhoan);
