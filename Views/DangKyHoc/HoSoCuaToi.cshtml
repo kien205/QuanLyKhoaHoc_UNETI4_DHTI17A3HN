@@ -1,0 +1,70 @@
+@* Họ và tên: Nguyễn Văn Giáp
+   Mã sinh viên: 22103100110
+   Nội dung thực hiện: Trang theo dõi hồ sơ đăng ký của học viên. *@
+@model IEnumerable<QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.HoSoHocVienViewModel>
+@{
+    ViewData["Title"] = "Hồ sơ đăng ký của tôi";
+}
+
+<partial name="~/Views/HocVien/_MenuHocVien.cshtml" />
+<h1>Hồ sơ đăng ký của tôi</h1>
+@if (!Model.Any())
+{
+    <p>Bạn chưa nộp hồ sơ đăng ký học nào.</p>
+}
+@foreach (var hoSo in Model)
+{
+    <section class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="h5">@hoSo.TenLop</h2>
+                    <p class="mb-1">Chương trình: @hoSo.TenChuongTrinhDaoTao</p>
+                    <p class="mb-1">Ngày nộp: @hoSo.NgayNop.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1">Trạng thái: <strong>@hoSo.TrangThai</strong></p>
+                    @if (!string.IsNullOrWhiteSpace(hoSo.KetQuaXepLop))
+                    {
+                        <p class="mb-1">Kết quả xếp lớp: <strong>@hoSo.KetQuaXepLop</strong></p>
+                    }
+                </div>
+                @if (hoSo.CoTheHuy)
+                {
+                    <form asp-action="HuyHoSo" method="post">
+                        <input type="hidden" name="maHoSo" value="@hoSo.MaHoSo" />
+                        <button type="submit" class="btn btn-outline-danger"
+                                onclick="return confirm('Bạn có chắc muốn hủy hồ sơ này không?');">Hủy hồ sơ</button>
+                    </form>
+                }
+            </div>
+            @if (hoSo.LichKiemTra.Count > 0)
+            {
+                <h3 class="h6 mt-3">Lịch kiểm tra đầu vào</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Hình thức</th>
+                                <th>Địa điểm/Liên kết</th>
+                                <th>Giáo viên</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lich in hoSo.LichKiemTra)
+                            {
+                                <tr>
+                                    <td>@lich.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm") – @lich.ThoiGianKetThuc.ToString("HH:mm")</td>
+                                    <td>@lich.HinhThucKiemTra</td>
+                                    <td>@lich.DiaDiemHoacLienKet</td>
+                                    <td>@lich.GiaoVienKiemTra</td>
+                                    <td>@lich.TrangThai</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </section>
+}

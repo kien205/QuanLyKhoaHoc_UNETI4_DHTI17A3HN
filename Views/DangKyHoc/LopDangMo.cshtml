@@ -1,0 +1,66 @@
+@* Họ và tên: Nguyễn Văn Giáp
+   Mã sinh viên: 22103100110
+   Nội dung thực hiện: Trang danh sách lớp học đang mở đăng ký. *@
+@model IEnumerable<QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.LopHocDangKyViewModel>
+@{
+    ViewData["Title"] = "Lớp đang mở đăng ký";
+}
+
+<partial name="~/Views/HocVien/_MenuHocVien.cshtml" />
+<h1>Lớp đang mở đăng ký</h1>
+<p>Chỉ các lớp còn trong thời gian nhận hồ sơ mới cho phép nộp đăng ký.</p>
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Lớp học</th>
+                <th>Chương trình</th>
+                <th>Trình độ đầu vào</th>
+                <th>Điểm đầu vào</th>
+                <th>Thời gian nhận hồ sơ</th>
+                <th>Tình trạng</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lop in Model)
+            {
+                <tr>
+                    <td>@lop.TenLop</td>
+                    <td>@lop.TenChuongTrinhDaoTao</td>
+                    <td>@lop.TrinhDoDauVao</td>
+                    <td>@lop.DiemDauVao</td>
+                    <td>@lop.NgayBatDauDangKy.ToString("dd/MM/yyyy") – @lop.HanDangKy.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @if (lop.DaCoHoSoDangXuLy)
+                        {
+                            <span class="badge bg-secondary">Đã có hồ sơ đang xử lý</span>
+                        }
+                        else if (lop.DangTrongHanDangKy)
+                        {
+                            <span class="badge bg-success">Còn hạn</span>
+                        }
+                        else if (lop.NgayBatDauDangKy.Date > DateTime.Today)
+                        {
+                            <span class="badge bg-info text-dark">Chưa đến ngày mở</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Hết hạn</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!lop.DaCoHoSoDangXuLy && lop.DangTrongHanDangKy)
+                        {
+                            <a asp-action="NopHoSo" asp-route-maLop="@lop.MaLop" class="btn btn-sm btn-primary">Đăng ký</a>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7" class="text-center">Hiện chưa có lớp nào mở đăng ký.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
