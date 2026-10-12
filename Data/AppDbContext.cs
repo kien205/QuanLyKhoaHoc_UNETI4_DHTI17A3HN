@@ -33,7 +33,16 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data
               .HasOne(t => t.HocVien).WithOne(h => h.TaiKhoan)
               .HasForeignKey<HocVien>(h => h.MaTaiKhoan);
 
-            
+            modelBuilder.Entity<HoSoDangKyHoc>()
+                .HasOne(h => h.HocVien)
+                .WithMany(hv => hv.HoSoDangKyHocs)
+                .HasForeignKey(h => h.MaHocVien);
+
+            modelBuilder.Entity<HoSoDangKyHoc>()
+                .HasOne(h => h.HocVien)
+                .WithMany(hv => hv.HoSoDangKyHocs)
+                .HasForeignKey(h => h.MaLop);
+
             modelBuilder.Entity<HoSoDangKyHoc>()
               .HasOne(h => h.KetQuaXepLop).WithOne(k => k.HoSoDangKyHoc)
               .HasForeignKey<KetQuaXepLop>(k => k.MaHoSo);
