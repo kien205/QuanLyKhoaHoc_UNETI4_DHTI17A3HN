@@ -27,7 +27,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         // GET: KetQuaXepLop
         public async Task<IActionResult> Index()
         {
-            var ds = await _context.KetQuaXepLops
+            var ds = await _context.KetQuaXepLops   
                 .Include(k => k.HoSoDangKyHoc!).ThenInclude(h => h.HocVien)
                 .Include(k => k.HoSoDangKyHoc!).ThenInclude(h => h.LopHoc)
                 .OrderByDescending(k => k.NgayCapNhat)

@@ -66,12 +66,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int?>("HocVienMaHocVien")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LopHocMaLop")
-                        .HasColumnType("int");
-
                     b.Property<string>("LyDoDangKy")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -99,9 +93,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.HasKey("MaHoSo");
 
-                    b.HasIndex("HocVienMaHocVien");
+                    b.HasIndex("MaHocVien");
 
-                    b.HasIndex("LopHocMaLop");
+                    b.HasIndex("MaLop");
 
                     b.ToTable("HoSoDangKyHocs");
                 });
@@ -260,9 +254,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLop"));
 
-                    b.Property<int?>("ChuongTrinhDaoTaoMaChuongTrinhDaoTao")
-                        .HasColumnType("int");
-
                     b.Property<double>("DiemDauVao")
                         .HasColumnType("float");
 
@@ -305,7 +296,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.HasKey("MaLop");
 
-                    b.HasIndex("ChuongTrinhDaoTaoMaChuongTrinhDaoTao");
+                    b.HasIndex("MaChuongTrinhDaoTao");
 
                     b.ToTable("LopHocs");
                 });
@@ -355,13 +346,15 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HocVien", "HocVien")
                         .WithMany("HoSoDangKyHocs")
-                        .HasForeignKey("HocVienMaHocVien")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MaHocVien")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LopHoc", "LopHoc")
                         .WithMany("hoSoDangKyHoc")
-                        .HasForeignKey("LopHocMaLop")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MaLop")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("HocVien");
 
@@ -404,8 +397,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.ChuongTrinhDaoTao", "ChuongTrinhDaoTao")
                         .WithMany("LopHocs")
-                        .HasForeignKey("ChuongTrinhDaoTaoMaChuongTrinhDaoTao")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MaChuongTrinhDaoTao")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("ChuongTrinhDaoTao");
                 });

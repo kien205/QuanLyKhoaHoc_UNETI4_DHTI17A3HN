@@ -1,0 +1,55 @@
+﻿@* Họ và tên: Lê Đức Long *@
+@* Mã sinh viên: 23103100015 *@
+@* Nội dung thực hiện: Dashboard 9 chỉ số (View) *@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+
+    void The(string nhan, int so, string mau)
+    {
+        <div class="col-6 col-md-4 mb-3">
+            <div class="card border-@mau h-100">
+                <div class="card-body text-center">
+                    <div class="display-6 text-@mau">@so</div>
+                    <div class="text-muted">@nhan</div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Dashboard</h2>
+    <a asp-action="ChiTiet" class="btn btn-primary">Xem thống kê chi tiết</a>
+</div>
+
+<div class="row">
+    @{
+        The("Chương trình đào tạo", Model.TongChuongTrinh, "primary");
+    }
+    @{
+        The("Lớp học", Model.TongLop, "primary");
+    }
+    @{
+        The("Lớp đang mở đăng ký", Model.LopDangMo, "success");
+    }
+    @{
+        The("Học viên", Model.TongHocVien, "primary");
+    }
+    @{
+        The("Hồ sơ", Model.TongHoSo, "primary");
+    }
+    @{
+        The("Hồ sơ chờ duyệt", Model.HoSoChoDuyet, "warning");
+    }
+    @{
+        The("Hồ sơ đủ điều kiện", Model.HoSoDuDieuKien, "info");
+    }
+    @{
+        The("Lịch kiểm tra sắp tới", Model.LichSapToi, "info");
+    }
+    @{
+        The("Hồ sơ được xếp lớp", Model.HoSoDuocXepLop, "success");
+    }
+</div>
