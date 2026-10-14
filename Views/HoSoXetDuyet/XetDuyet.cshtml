@@ -1,0 +1,67 @@
+﻿@* 
+Họ và tên: Tạ Thị Bích Loan 
+Mã sinh viên: 23103100147
+Nội dung thực hiện: Form cập nhật kết quả xét duyệt hồ sơ (Module 4)
+*@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.XetDuyetHoSoViewModel
+
+@{
+    ViewData["Title"] = "Xét duyệt hồ sơ #" + Model.MaHoSo;
+}
+
+<div class="container mt-3" style="max-width: 800px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Xét duyệt hồ sơ đăng ký học: #@Model.MaHoSo</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.DaDaySiSo)
+            {
+                <div class="alert alert-warning">
+                    <strong>Lưu ý sĩ số:</strong> Lớp học này đã đủ sĩ số tối đa (@Model.SoLuongDaXepLop / @Model.SiSoToiDa).
+                </div>
+            }
+
+            <div class="alert alert-info">
+                <h6 class="fw-bold">Thông tin đối chiếu:</h6>
+                <ul class="mb-0">
+                    <li><strong>Học viên:</strong> @Model.HoSo?.HocVien?.HoTen (Trình độ: @Model.HoSo?.HocVien?.TrinhDoHienTai)</li>
+                    <li><strong>Đăng ký vào lớp:</strong> @Model.HoSo?.LopHoc?.TenLop (Yêu cầu đầu vào: @Model.HoSo?.LopHoc?.TrinhDoDauVao)</li>
+                    <li><strong>Lý do đăng ký:</strong> @Model.HoSo?.LyDoDangKy</li>
+                </ul>
+            </div>
+
+            <form asp-action="XetDuyet" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="MaHoSo" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Kết quả xét duyệt: <span class="text-danger">*</span></label>
+                    <div class="mt-1">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" asp-for="KetQuaDuyet" value="Đủ điều kiện" id="duDieuKien" />
+                            <label class="form-check-label text-success fw-bold" for="duDieuKien">Đủ điều kiện</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" asp-for="KetQuaDuyet" value="Không đủ điều kiện" id="khongDuDieuKien" />
+                            <label class="form-check-label text-danger fw-bold" for="khongDuDieuKien">Không đủ điều kiện</label>
+                        </div>
+                    </div>
+                    <span asp-validation-for="KetQuaDuyet" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nhận xét xét duyệt / Lý do: <span class="text-danger">*</span></label>
+                    <textarea asp-for="NhanXetXetDuyet" class="form-control" rows="4" placeholder="Nhập lý do đủ điều kiện hoặc từ chối..."></textarea>
+                    <span asp-validation-for="NhanXetXetDuyet" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-success">Xác nhận lưu xét duyệt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
