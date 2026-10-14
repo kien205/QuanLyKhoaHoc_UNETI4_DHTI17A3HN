@@ -1,0 +1,188 @@
+﻿@* Họ và tên: Phan Thị Hương Trà *@
+@* Mã sinh viên: 23103100139 *@
+@* Nội dung thực hiện: Xây dựng giao diện hiển thị chi tiết thông tin của một lớp học. *@
+
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LopHoc
+
+@{
+    ViewData["Title"] = "Chi tiết lớp học";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">Chi tiết lớp học</h2>
+        <p class="text-muted">
+            Thông tin chi tiết của lớp học
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Mã lớp
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.MaLop
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Tên lớp
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.TenLop
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Chương trình đào tạo
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.ChuongTrinhDaoTao?.TenChuongTrinhDaoTao
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Sĩ số tối đa
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.SiSoToiDa
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Trình độ đầu vào
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.TrinhDoDauVao
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Điểm đầu vào tối thiểu
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.DiemDauVao.ToString("0.0")
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Ngày bắt đầu đăng ký
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.NgayBatDauDangKy.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Hạn đăng ký
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.HanDangKy.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="fw-bold">
+                        Trạng thái
+                    </label>
+
+                    <div class="mt-1">
+                        @if (Model.TrangThai == "Đang mở đăng ký")
+                        {
+                            <span class="badge bg-success fs-6">
+                                @Model.TrangThai
+                            </span>
+                        }
+                        else if (Model.TrangThai == "Tạm dừng")
+                        {
+                            <span class="badge bg-warning text-dark fs-6">
+                                @Model.TrangThai
+                            </span>
+                        }
+                        else if (Model.TrangThai == "Đã đóng")
+                        {
+                            <span class="badge bg-secondary fs-6">
+                                @Model.TrangThai
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info fs-6">
+                                @Model.TrangThai
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Mô tả lớp học
+                    </label>
+
+                    <div class="border rounded p-3 bg-light"
+                         style="min-height: 120px;">
+                        @Model.MoTaLopHoc
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Yêu cầu học viên
+                    </label>
+
+                    <div class="border rounded p-3 bg-light"
+                         style="min-height: 120px;">
+                        @Model.YeuCauHocVien
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+
+                <a asp-action="Edit"
+                   asp-route-id="@Model.MaLop"
+                   class="btn btn-primary">
+                    Sửa lớp học
+                </a>
+
+                <a asp-action="Delete"
+                   asp-route-id="@Model.MaLop"
+                   class="btn btn-danger">
+                    Xóa lớp học
+                </a>
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+                    Quay lại
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,244 @@
+﻿@* Họ và tên: Phan Thị Hương Trà *@
+@* Mã sinh viên: 23103100139 *@
+@* Nội dung thực hiện: Xây dựng giao diện thêm mới lớp học và nhập thông tin lớp học. *@
+
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LopHoc
+
+@{
+    ViewData["Title"] = "Thêm lớp học";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">Thêm lớp học</h2>
+        <p class="text-muted">
+            Nhập thông tin lớp học mới
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label asp-for="TenLop"
+                               class="form-label">
+                            Tên lớp học
+                        </label>
+
+                        <input asp-for="TenLop"
+                               class="form-control"
+                               placeholder="Nhập tên lớp học" />
+
+                        <span asp-validation-for="TenLop"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="MaChuongTrinhDaoTao"
+                               class="form-label">
+                            Chương trình đào tạo
+                        </label>
+
+                        <select asp-for="MaChuongTrinhDaoTao"
+                                asp-items="ViewBag.ChuongTrinhDaoTaos"
+                                class="form-select">
+
+                            <option value="">
+                                -- Chọn chương trình đào tạo --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="MaChuongTrinhDaoTao"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="SiSoToiDa"
+                               class="form-label">
+                            Sĩ số tối đa
+                        </label>
+
+                        <input asp-for="SiSoToiDa"
+                               type="number"
+                               min="1"
+                               max="50"
+                               class="form-control" />
+
+                        <span asp-validation-for="SiSoToiDa"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="TrinhDoDauVao"
+                               class="form-label">
+                            Trình độ đầu vào
+                        </label>
+
+                        <input asp-for="TrinhDoDauVao"
+                               class="form-control"
+                               placeholder="Ví dụ: Cơ bản, Trung cấp..." />
+
+                        <span asp-validation-for="TrinhDoDauVao"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="DiemDauVao"
+                               class="form-label">
+                            Điểm đầu vào tối thiểu
+                        </label>
+
+                        <input asp-for="DiemDauVao"
+                               type="number"
+                               min="0"
+                               max="10"
+                               step="0.1"
+                               class="form-control" />
+
+                        <span asp-validation-for="DiemDauVao"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="NgayBatDauDangKy"
+                               class="form-label">
+                            Ngày bắt đầu đăng ký
+                        </label>
+
+                        <input asp-for="NgayBatDauDangKy"
+                               type="datetime-local"
+                               class="form-control" />
+
+                        <span asp-validation-for="NgayBatDauDangKy"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HanDangKy"
+                               class="form-label">
+                            Hạn đăng ký
+                        </label>
+
+                        <input asp-for="HanDangKy"
+                               type="datetime-local"
+                               class="form-control" />
+
+                        <span asp-validation-for="HanDangKy"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="TrangThai"
+                               class="form-label">
+                            Trạng thái
+                        </label>
+
+                        <select asp-for="TrangThai"
+                                class="form-select">
+
+                            <option value="">
+                                -- Chọn trạng thái --
+                            </option>
+
+                            <option value="Chưa mở">
+                                Chưa mở
+                            </option>
+
+                            <option value="Đang mở đăng ký">
+                                Đang mở đăng ký
+                            </option>
+
+                            <option value="Tạm dừng">
+                                Tạm dừng
+                            </option>
+
+                            <option value="Đã đóng">
+                                Đã đóng
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="TrangThai"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="MoTaLopHoc"
+                               class="form-label">
+                            Mô tả lớp học
+                        </label>
+
+                        <textarea asp-for="MoTaLopHoc"
+                                  class="form-control"
+                                  rows="5"
+                                  placeholder="Nhập mô tả lớp học"></textarea>
+
+                        <span asp-validation-for="MoTaLopHoc"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="YeuCauHocVien"
+                               class="form-label">
+                            Yêu cầu học viên
+                        </label>
+
+                        <textarea asp-for="YeuCauHocVien"
+                                  class="form-control"
+                                  rows="5"
+                                  placeholder="Nhập yêu cầu đối với học viên"></textarea>
+
+                        <span asp-validation-for="YeuCauHocVien"
+                              class="text-danger">
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Lưu lớp học
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary">
+                        Quay lại
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

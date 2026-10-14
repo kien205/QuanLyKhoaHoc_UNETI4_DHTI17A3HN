@@ -1,0 +1,120 @@
+﻿@* Họ và tên: Phan Thị Hương Trà *@
+@* Mã sinh viên: 23103100139 *@
+@* Nội dung thực hiện: Xây dựng giao diện xác nhận và thực hiện xóa lớp học có kiểm soát dữ liệu liên quan. *@
+
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LopHoc
+
+@{
+    ViewData["Title"] = "Xóa lớp học";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold text-danger">
+            Xóa lớp học
+        </h2>
+
+        <p class="text-muted">
+            Xác nhận thông tin trước khi xóa
+        </p>
+    </div>
+
+    <div class="alert alert-warning">
+        <strong>Cảnh báo:</strong>
+        Bạn có chắc chắn muốn xóa lớp học này không?
+        Nếu lớp đã có hồ sơ đăng ký, hệ thống sẽ không cho phép xóa.
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Mã lớp
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.MaLop
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Tên lớp
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.TenLop
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Chương trình đào tạo
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.ChuongTrinhDaoTao?.TenChuongTrinhDaoTao
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Sĩ số tối đa
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.SiSoToiDa
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Trình độ đầu vào
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.TrinhDoDauVao
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="fw-bold">
+                        Trạng thái
+                    </label>
+
+                    <div class="form-control bg-light">
+                        @Model.TrangThai
+                    </div>
+                </div>
+
+            </div>
+
+            <form asp-action="Delete"
+                  method="post"
+                  class="mt-4">
+
+                <input type="hidden"
+                       asp-for="MaLop" />
+
+                <button type="submit"
+                        class="btn btn-danger">
+                    Xác nhận xóa
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+                    Hủy
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

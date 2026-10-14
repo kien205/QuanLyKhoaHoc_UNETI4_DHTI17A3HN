@@ -1,0 +1,721 @@
+﻿@* Họ và tên: Phan Thị Hương Trà *@
+@* Mã sinh viên: 23103100139 *@
+@* Nội dung thực hiện: Hiển thị danh sách lớp học, tìm kiếm, lọc, sắp xếp và phân trang. *@
+
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.LopHocListViewModel
+
+@{
+    ViewData["Title"] = "Quản lý lớp học";
+
+    string GetSortUrl(string sort)
+    {
+        return Url.Action(
+            "Index",
+            "LopHoc",
+            new
+            {
+                searchString = Model.SearchString,
+                maChuongTrinhDaoTao = Model.MaChuongTrinhDaoTao,
+                trinhDoDauVao = Model.TrinhDoDauVao,
+                trangThai = Model.TrangThai,
+                diemDauVaoTu = Model.DiemDauVaoTu,
+                hanDangKyFilter = Model.HanDangKyFilter,
+                sortOrder = sort,
+                page = 1
+            }) ?? "#";
+    }
+
+    string GetPageUrl(int page)
+    {
+        return Url.Action(
+            "Index",
+            "LopHoc",
+            new
+            {
+                searchString = Model.SearchString,
+                maChuongTrinhDaoTao = Model.MaChuongTrinhDaoTao,
+                trinhDoDauVao = Model.TrinhDoDauVao,
+                trangThai = Model.TrangThai,
+                diemDauVaoTu = Model.DiemDauVaoTu,
+                hanDangKyFilter = Model.HanDangKyFilter,
+                sortOrder = Model.SortOrder,
+                page = page
+            }) ?? "#";
+    }
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                Quản lý lớp học
+            </h2>
+
+            <p class="text-muted mb-0">
+                Tìm kiếm, lọc, sắp xếp và quản lý danh sách lớp học
+            </p>
+        </div>
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+            + Thêm lớp học
+        </a>
+
+    </div>
+
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+                Tìm kiếm và lọc
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form asp-action="Index"
+                  asp-controller="LopHoc"
+                  method="get">
+
+                <div class="row g-3">
+
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Từ khóa
+                        </label>
+
+                        <input type="text"
+                               name="searchString"
+                               value="@Model.SearchString"
+                               class="form-control"
+                               placeholder="Tên lớp hoặc tên chương trình..." />
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Chương trình đào tạo
+                        </label>
+
+                        <select name="maChuongTrinhDaoTao"
+                                class="form-select">
+
+                            <option value="">
+                                -- Tất cả chương trình --
+                            </option>
+
+                            @foreach (SelectListItem item in ViewBag.ChuongTrinhDaoTaos)
+                            {
+                                if (item.Selected)
+                                {
+                                    <option value="@item.Value"
+                                            selected>
+                                        @item.Text
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">
+                                        @item.Text
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Trình độ đầu vào
+                        </label>
+
+                        <select name="trinhDoDauVao"
+                                class="form-select">
+
+                            <option value="">
+                                -- Tất cả trình độ --
+                            </option>
+
+                            @foreach (string item in ViewBag.TrinhDoDauVaos)
+                            {
+                                if (Model.TrinhDoDauVao == item)
+                                {
+                                    <option value="@item"
+                                            selected>
+                                        @item
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@item">
+                                        @item
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Trạng thái
+                        </label>
+
+                        <select name="trangThai"
+                                class="form-select">
+
+                            <option value="">
+                                -- Tất cả --
+                            </option>
+
+                            @foreach (string item in ViewBag.TrangThais)
+                            {
+                                if (Model.TrangThai == item)
+                                {
+                                    <option value="@item"
+                                            selected>
+                                        @item
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@item">
+                                        @item
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Điểm đầu vào từ
+                        </label>
+
+                        <input type="number"
+                               name="diemDauVaoTu"
+                               value="@Model.DiemDauVaoTu"
+                               min="0"
+                               max="10"
+                               step="0.1"
+                               class="form-control"
+                               placeholder="Ví dụ: 5" />
+
+                    </div>
+
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+                            Hạn đăng ký
+                        </label>
+
+                        <select name="hanDangKyFilter"
+                                class="form-select">
+
+                            <option value="">
+                                -- Tất cả --
+                            </option>
+
+                            @if (Model.HanDangKyFilter == "con_han")
+                            {
+                                <option value="con_han"
+                                        selected>
+                                    Còn hạn
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="con_han">
+                                    Còn hạn
+                                </option>
+                            }
+
+
+                            @if (Model.HanDangKyFilter == "het_han")
+                            {
+                                <option value="het_han"
+                                        selected>
+                                    Hết hạn
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="het_han">
+                                    Hết hạn
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary flex-fill">
+                            Tìm kiếm
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Xóa lọc
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                Danh sách lớp học
+            </h5>
+
+            <span class="text-muted">
+                Tổng số:
+                <strong>@Model.TotalItems</strong>
+                lớp
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-bordered align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>
+
+                            <a href="@GetSortUrl(
+                                                               Model.SortOrder == "name_desc"
+                                                                   ? "name_asc"
+                                                                   : "name_desc")"
+                               class="text-decoration-none text-dark">
+
+                                Tên lớp
+
+                                @if (Model.SortOrder == "name_desc")
+                                {
+                                    <span>▼</span>
+                                }
+                                else
+                                {
+                                    <span>▲</span>
+                                }
+
+                            </a>
+
+                        </th>
+
+
+                        <th>
+                            Chương trình đào tạo
+                        </th>
+
+
+                        <th>
+                            Trình độ
+                        </th>
+
+
+                        <th>
+
+                            <a href="@GetSortUrl(
+                                                               Model.SortOrder == "score_desc"
+                                                                   ? "score_asc"
+                                                                   : "score_desc")"
+                               class="text-decoration-none text-dark">
+
+                                Điểm đầu vào
+
+                            </a>
+
+                        </th>
+
+
+                        <th>
+
+                            <a href="@GetSortUrl(
+                                                               Model.SortOrder == "size_desc"
+                                                                   ? "size_asc"
+                                                                   : "size_desc")"
+                               class="text-decoration-none text-dark">
+
+                                Sĩ số
+
+                            </a>
+
+                        </th>
+
+
+                        <th>
+
+                            <a href="@GetSortUrl(
+                                                               Model.SortOrder == "date_desc"
+                                                                   ? "date_asc"
+                                                                   : "date_desc")"
+                               class="text-decoration-none text-dark">
+
+                                Hạn đăng ký
+
+                            </a>
+
+                        </th>
+
+
+                        <th>
+                            Trạng thái
+                        </th>
+
+
+                        <th style="width: 180px;">
+                            Thao tác
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (Model.LopHocs == null ||
+                         Model.LopHocs.Count == 0)
+                    {
+                        <tr>
+
+                            <td colspan="8"
+                                class="text-center py-5 text-muted">
+
+                                Không tìm thấy lớp học phù hợp.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.LopHocs)
+                        {
+                            bool conHan =
+                                item.HanDangKy >= DateTime.Now;
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        @item.TenLop
+                                    </strong>
+                                </td>
+
+
+                                <td>
+
+                                    @if (item.ChuongTrinhDaoTao != null)
+                                    {
+                                        <span>
+                                            @item.ChuongTrinhDaoTao.TenChuongTrinhDaoTao
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">
+                                            Chưa xác định
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <td>
+                                    @item.TrinhDoDauVao
+                                </td>
+
+
+                                <td>
+                                    @item.DiemDauVao.ToString("0.0")
+                                </td>
+
+
+                                <td>
+                                    @item.SiSoToiDa
+                                </td>
+
+
+                                <td>
+
+                                    <div>
+                                        @item.HanDangKy.ToString(
+                                            "dd/MM/yyyy HH:mm")
+                                    </div>
+
+
+                                    @if (conHan)
+                                    {
+                                        <span class="badge bg-success">
+                                            Còn hạn
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Hết hạn
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <td>
+
+                                    @if (item.TrangThai ==
+                                        HangSo.TrangThaiLop.DangMoDangKy)
+                                    {
+                                        <span class="badge bg-success">
+                                            @item.TrangThai
+                                        </span>
+                                    }
+                                    else if (item.TrangThai ==
+                                             HangSo.TrangThaiLop.TamDung)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            @item.TrangThai
+                                        </span>
+                                    }
+                                    else if (item.TrangThai ==
+                                             HangSo.TrangThaiLop.DaDong)
+                                    {
+                                        <span class="badge bg-secondary">
+                                            @item.TrangThai
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">
+                                            @item.TrangThai
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <td>
+
+                                    <div class="d-flex gap-1">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.MaLop"
+                                           class="btn btn-sm btn-outline-info">
+
+                                            Chi tiết
+
+                                        </a>
+
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.MaLop"
+                                           class="btn btn-sm btn-outline-primary">
+
+                                            Sửa
+
+                                        </a>
+
+
+                                        <a asp-action="Delete"
+                                           asp-route-id="@item.MaLop"
+                                           class="btn btn-sm btn-outline-danger">
+
+                                            Xóa
+
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div class="text-muted">
+
+                        Trang
+                        <strong>@Model.Page</strong>
+                        /
+                        <strong>@Model.TotalPages</strong>
+
+                    </div>
+
+
+                    <nav>
+
+                        <ul class="pagination mb-0">
+
+                            @if (Model.Page > 1)
+                            {
+                                <li class="page-item">
+
+                                    <a class="page-link"
+                                       href="@GetPageUrl(Model.Page - 1)">
+                                        Trước
+                                    </a>
+
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+
+                                    <span class="page-link">
+                                        Trước
+                                    </span>
+
+                                </li>
+                            }
+
+
+                            @for (int i = 1;
+                                  i <= Model.TotalPages;
+                                  i++)
+                            {
+                                if (i == Model.Page)
+                                {
+                                    <li class="page-item active">
+
+                                        <span class="page-link">
+                                            @i
+                                        </span>
+
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item">
+
+                                        <a class="page-link"
+                                           href="@GetPageUrl(i)">
+                                            @i
+                                        </a>
+
+                                    </li>
+                                }
+                            }
+
+
+                            @if (Model.Page < Model.TotalPages)
+                            {
+                                <li class="page-item">
+
+                                    <a class="page-link"
+                                       href="@GetPageUrl(Model.Page + 1)">
+                                        Sau
+                                    </a>
+
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+
+                                    <span class="page-link">
+                                        Sau
+                                    </span>
+
+                                </li>
+                            }
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
