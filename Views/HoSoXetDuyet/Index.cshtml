@@ -1,0 +1,205 @@
+﻿@* 
+Họ và tên: Tạ Thị Bích Loan
+Mã sinh viên: 23103100147
+Nội dung thực hiện: Danh sách hồ sơ, tìm kiếm, lọc, phân trang (Module 4)
+*@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.DanhSachHoSoViewModel
+
+@{
+    ViewData["Title"] = "Tiếp nhận & Xét duyệt hồ sơ";
+}
+
+<div class="container-fluid mt-3">
+    <h3 class="text-primary mb-3">Tiếp nhận & Xét duyệt hồ sơ học viên</h3>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- BỘ LỌC TÌM KIẾM -->
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body bg-light rounded">
+            <form method="get" asp-action="Index">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Từ khóa:</label>
+                        <input type="text" name="tuKhoa" value="@Model.TuKhoa" class="form-control form-control-sm" placeholder="Tìm theo tên học viên, tên lớp..." />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Chương trình:</label>
+                        <select name="maChuongTrinh" asp-for="MaChuongTrinhDaoTao" asp-items="ViewBag.ChuongTrinhList" class="form-select form-select-sm">
+                            <option value="">-- Tất cả --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Trạng thái:</label>
+                        <select name="trangThai" class="form-select form-select-sm">
+                            <option value="">-- Tất cả --</option>
+                            <option value="Chờ duyệt" selected="@(Model.TrangThai == "Chờ duyệt")">Chờ duyệt</option>
+                            <option value="Đủ điều kiện" selected="@(Model.TrangThai == "Đủ điều kiện")">Đủ điều kiện</option>
+                            <option value="Không đủ điều kiện" selected="@(Model.TrangThai == "Không đủ điều kiện")">Không đủ điều kiện</option>
+                            <option value="Chờ kiểm tra đầu vào" selected="@(Model.TrangThai == "Chờ kiểm tra đầu vào")">Chờ kiểm tra đầu vào</option>
+                            <option value="Đã kiểm tra đầu vào" selected="@(Model.TrangThai == "Đã kiểm tra đầu vào")">Đã kiểm tra đầu vào</option>
+                            <option value="Được xếp lớp" selected="@(Model.TrangThai == "Được xếp lớp")">Được xếp lớp</option>
+                            <option value="Đã hủy" selected="@(Model.TrangThai == "Đã hủy")">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Từ ngày nộp:</label>
+                        <input type="date" name="tuNgay" value="@(Model.TuNgay?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Đến ngày nộp:</label>
+                        <input type="date" name="denNgay" value="@(Model.DenNgay?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Lọc</button>
+                    </div>
+                </div>
+                <div class="row mt-2 g-2">
+                    <div class="col-md-3">
+                        <select name="sapXep" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="ngay_giam" selected="@(Model.SapXep == "ngay_giam" || string.IsNullOrEmpty(Model.SapXep))">Ngày nộp: Mới nhất</option>
+                            <option value="ngay_tang" selected="@(Model.SapXep == "ngay_tang")">Ngày nộp: Cũ nhất</option>
+                            <option value="ten_az" selected="@(Model.SapXep == "ten_az")">Tên học viên: A -> Z</option>
+                            <option value="ten_za" selected="@(Model.SapXep == "ten_za")">Tên học viên: Z -> A</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Đặt lại bộ lọc</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- BẢNG DANH SÁCH HỒ SƠ -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 70px;">Mã HS</th>
+                            <th>Học viên</th>
+                            <th>Lớp đăng ký</th>
+                            <th>Chương trình</th>
+                            <th>Ngày nộp</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center" style="width: 170px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DanhSachHoSo != null && Model.DanhSachHoSo.Any())
+                        {
+                            foreach (var item in Model.DanhSachHoSo)
+                            {
+                                <tr>
+                                    <td><strong>#@item.MaHoSo</strong></td>
+                                    <td>
+                                        <div class="fw-bold">@(item.HocVien?.HoTen ?? "Chưa cập nhật")</div>
+                                        <small class="text-muted">
+                                            @(item.HocVien?.Email ?? "N/A") | @(item.HocVien?.SoDienThoai ?? "N/A")
+                                        </small>
+                                    </td>
+                                    <td>@(item.LopHoc?.TenLop ?? "Chưa xếp lớp")</td>
+                                    <td>@(item.LopHoc?.ChuongTrinhDaoTao?.TenChuongTrinhDaoTao ?? "—")</td>
+                                    <td>@item.NgayNop.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (item.TrangThai == "Chờ duyệt")
+                                        {
+                                            <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                        }
+                                        else if (item.TrangThai == "Đủ điều kiện")
+                                        {
+                                            <span class="badge bg-info text-dark">Đủ điều kiện</span>
+                                        }
+                                        else if (item.TrangThai == "Không đủ điều kiện")
+                                        {
+                                            <span class="badge bg-danger">Không đủ ĐK</span>
+                                        }
+                                        else if (item.TrangThai == "Được xếp lớp")
+                                        {
+                                            <span class="badge bg-success">Được xếp lớp</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.TrangThai</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="ChiTiet" asp-route-id="@item.MaHoSo" class="btn btn-sm btn-outline-info">Chi tiết</a>
+                                        @if (item.TrangThai == "Chờ duyệt")
+                                        {
+                                            <a asp-action="XetDuyet" asp-route-id="@item.MaHoSo" class="btn btn-sm btn-primary ms-1">Xét duyệt</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Không tìm thấy hồ sơ nào phù hợp.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHÂN TRANG -->
+    @if (Model.TongSoTrang > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-muted small">Trang @Model.TrangHienTai / @Model.TongSoTrang (Tổng số @Model.TongSoBanGhi hồ sơ)</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.TrangHienTai == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-trang="@(Model.TrangHienTai - 1)"
+                       asp-route-tuKhoa="@Model.TuKhoa"
+                       asp-route-maChuongTrinh="@Model.MaChuongTrinhDaoTao"
+                       asp-route-trangThai="@Model.TrangThai"
+                       asp-route-tuNgay="@(Model.TuNgay?.ToString("yyyy-MM-dd"))"
+                       asp-route-denNgay="@(Model.DenNgay?.ToString("yyyy-MM-dd"))"
+                       asp-route-sapXep="@Model.SapXep">Trước</a>
+                </li>
+                @for (int i = 1; i <= Model.TongSoTrang; i++)
+                {
+                    <li class="page-item @(Model.TrangHienTai == i ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-trang="@i"
+                           asp-route-tuKhoa="@Model.TuKhoa"
+                           asp-route-maChuongTrinh="@Model.MaChuongTrinhDaoTao"
+                           asp-route-trangThai="@Model.TrangThai"
+                           asp-route-tuNgay="@(Model.TuNgay?.ToString("yyyy-MM-dd"))"
+                           asp-route-denNgay="@(Model.DenNgay?.ToString("yyyy-MM-dd"))"
+                           asp-route-sapXep="@Model.SapXep">@i</a>
+                    </li>
+                }
+                <li class="page-item @(Model.TrangHienTai == Model.TongSoTrang ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-trang="@(Model.TrangHienTai + 1)"
+                       asp-route-tuKhoa="@Model.TuKhoa"
+                       asp-route-maChuongTrinh="@Model.MaChuongTrinhDaoTao"
+                       asp-route-trangThai="@Model.TrangThai"
+                       asp-route-tuNgay="@(Model.TuNgay?.ToString("yyyy-MM-dd"))"
+                       asp-route-denNgay="@(Model.DenNgay?.ToString("yyyy-MM-dd"))"
+                       asp-route-sapXep="@Model.SapXep">Sau</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>

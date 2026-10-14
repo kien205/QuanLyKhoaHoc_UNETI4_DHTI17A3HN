@@ -1,0 +1,102 @@
+﻿@* 
+Họ và tên: Tạ Thị Bích Loan
+Mã sinh viên: 23103100147
+Nội dung thực hiện: Chi tiết hồ sơ, đối chiếu điều kiện và cảnh báo sĩ số
+*@
+@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc
+
+@{
+    ViewData["Title"] = "Chi tiết hồ sơ #" + Model?.MaHoSo;
+    bool daDaySiSo = (bool)(ViewBag.DaDaySiSo ?? false);
+    int daXepLop = (int)(ViewBag.SoLuongDaXepLop ?? 0);
+    int siSoToiDa = (int)(ViewBag.SiSoToiDa ?? 0);
+}
+
+<div class="container mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Chi tiết hồ sơ đăng ký học: #@Model?.MaHoSo</h4>
+        <a asp-action="Index" class="btn btn-secondary btn-sm">Quay lại danh sách</a>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (daDaySiSo)
+    {
+        <div class="alert alert-warning">
+            <strong>Cảnh báo sĩ số:</strong> Lớp học này đã đủ sĩ số tối đa (@daXepLop / @siSoToiDa học viên đã xếp lớp).
+        </div>
+    }
+
+    <div class="row">
+        <!-- 1. Thông tin học viên -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">1. Thông tin học viên</div>
+                <div class="card-body">
+                    <p><strong>Họ và tên:</strong> @(Model?.HocVien?.HoTen ?? "N/A")</p>
+                    <p><strong>Ngày sinh:</strong> @(Model?.HocVien?.NgaySinh.ToString("dd/MM/yyyy") ?? "N/A")</p>
+                    <p><strong>Email:</strong> @(Model?.HocVien?.Email ?? "N/A")</p>
+                    <p><strong>Số điện thoại:</strong> @(Model?.HocVien?.SoDienThoai ?? "N/A")</p>
+                    <p><strong>Trình độ hiện tại:</strong> <span class="badge bg-info text-dark">@(Model?.HocVien?.TrinhDoHienTai ?? "N/A")</span></p>
+                    <p><strong>Số tháng đã học:</strong> @(Model?.HocVien?.SoThangDaHoc ?? 0) tháng</p>
+                    <p><strong>Mục tiêu học tập:</strong> @(Model?.HocVien?.MucTieuHoc ?? "Không có")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Yêu cầu của lớp học -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white">2. Yêu cầu của lớp học</div>
+                <div class="card-body">
+                    <p><strong>Tên lớp:</strong> @(Model?.LopHoc?.TenLop ?? "N/A")</p>
+                    <p><strong>Chương trình:</strong> @(Model?.LopHoc?.ChuongTrinhDaoTao?.TenChuongTrinhDaoTao ?? "N/A")</p>
+                    <p><strong>Trình độ đầu vào yêu cầu:</strong> <span class="badge bg-warning text-dark">@(Model?.LopHoc?.TrinhDoDauVao ?? "N/A")</span></p>
+                    <p><strong>Điểm đầu vào tối thiểu:</strong> @(Model?.LopHoc?.DiemDauVao.ToString() ?? "0")</p>
+                    <p><strong>Sĩ số hiện tại:</strong> @daXepLop / @siSoToiDa học viên</p>
+                    <p><strong>Yêu cầu chi tiết:</strong> @(Model?.LopHoc?.YeuCauHocVien ?? "Không có yêu cầu thêm")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Quá trình xử lý hồ sơ -->
+    <div class="card shadow-sm mt-2">
+        <div class="card-header bg-secondary text-white">3. Quá trình xử lý hồ sơ</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p><strong>Trạng thái hồ sơ:</strong> <span class="badge bg-dark">@(Model?.TrangThai ?? "N/A")</span></p>
+                    <p><strong>Ngày nộp:</strong> @(Model?.NgayNop.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</p>
+                    <p><strong>Lý do đăng ký:</strong> @(Model?.LyDoDangKy ?? "Không có")</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Ngày xử lý:</strong> @(Model?.NgayXuLy.HasValue == true ? Model.NgayXuLy.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa xử lý")</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Nhận xét xét duyệt:</strong></p>
+                    <div class="p-2 border rounded bg-light">
+                        @(string.IsNullOrEmpty(Model?.NhanXetXetDuyet) ? "Chưa có nhận xét" : Model.NhanXetXetDuyet)
+                    </div>
+                </div>
+            </div>
+
+            @if (Model?.TrangThai == "Chờ duyệt")
+            {
+                <hr />
+                <div class="text-end">
+                    <a asp-action="XetDuyet" asp-route-id="@Model.MaHoSo" class="btn btn-primary">
+                        Tiến hành xét duyệt hồ sơ này
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
