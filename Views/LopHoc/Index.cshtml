@@ -1,14 +1,19 @@
 ﻿@* Họ và tên: Phan Thị Hương Trà *@
 @* Mã sinh viên: 23103100139 *@
 @* Nội dung thực hiện: Hiển thị danh sách lớp học, tìm kiếm, lọc, sắp xếp và phân trang. *@
+@* Ẩn thao tác quản trị với người không có quyền: Nguyễn Văn Giáp, 22103100110. *@
 
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
 
 @model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.LopHocListViewModel
 
 @{
     ViewData["Title"] = "Quản lý lớp học";
+    var vaiTro = Context.Session.GetString(SessionKeys.VaiTro);
+    var coQuyenQuanLy = vaiTro == VaiTroTaiKhoan.Admin ||
+                        vaiTro == VaiTroTaiKhoan.NhanVienDaoTao;
 
     string GetSortUrl(string sort)
     {
@@ -61,10 +66,12 @@
             </p>
         </div>
 
-        <a asp-action="Create"
-           class="btn btn-primary">
-            + Thêm lớp học
-        </a>
+        @if (coQuyenQuanLy)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                + Thêm lớp học
+            </a>
+        }
 
     </div>
 
@@ -582,22 +589,20 @@
                                         </a>
 
 
-                                        <a asp-action="Edit"
-                                           asp-route-id="@item.MaLop"
-                                           class="btn btn-sm btn-outline-primary">
+                                        @if (coQuyenQuanLy)
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.MaLop"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Sửa
+                                            </a>
 
-                                            Sửa
-
-                                        </a>
-
-
-                                        <a asp-action="Delete"
-                                           asp-route-id="@item.MaLop"
-                                           class="btn btn-sm btn-outline-danger">
-
-                                            Xóa
-
-                                        </a>
+                                            <a asp-action="Delete"
+                                               asp-route-id="@item.MaLop"
+                                               class="btn btn-sm btn-outline-danger">
+                                                Xóa
+                                            </a>
+                                        }
 
                                     </div>
 

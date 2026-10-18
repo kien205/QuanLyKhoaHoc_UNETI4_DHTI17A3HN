@@ -1,6 +1,7 @@
 ﻿// Họ và tên: Tạ Thị Bích Loan 
 // Mã sinh viên: 23103100147
 // Nội dung thực hiện: Module 4 - Tiếp nhận hồ sơ, Xét duyệt, Quản lý luồng trạng thái, Kiểm soát sĩ số tối đa
+// Sửa lỗi xác thực kết quả xét duyệt: Nguyễn Văn Giáp, 22103100110.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var query = _context.HoSoDangKyHocs
                 .Include(h => h.HocVien)
                 .Include(h => h.LopHoc)
-                    .ThenInclude(l => l.ChuongTrinhDaoTao)
+                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
                 .AsQueryable();
 
            
@@ -48,7 +49,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             {
                 string tk = tuKhoa.Trim().ToLower();
                 query = query.Where(h => (h.HocVien != null && h.HocVien.HoTen.ToLower().Contains(tk)) ||
-                                         (h.HocVien != null && h.HocVien.Email.ToLower().Contains(tk)) ||
+                                         (h.HocVien != null && h.HocVien.Email != null &&
+                                          h.HocVien.Email.ToLower().Contains(tk)) ||
                                          (h.LopHoc != null && h.LopHoc.TenLop.ToLower().Contains(tk)));
             }
 
@@ -120,7 +122,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var hoSo = await _context.HoSoDangKyHocs
                 .Include(h => h.HocVien)
                 .Include(h => h.LopHoc)
-                    .ThenInclude(l => l.ChuongTrinhDaoTao)
+                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
                 .FirstOrDefaultAsync(h => h.MaHoSo == id);
 
             if (hoSo == null)
@@ -135,7 +137,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (hoSo.MaLop > 0)
             {
                 daXepLop = await _context.HoSoDangKyHocs
-                    .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == "Được xếp lớp");
+                    .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == TrangThaiHoSo.DuocXepLop);
             }
 
             ViewBag.SoLuongDaXepLop = daXepLop;
@@ -152,7 +154,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var hoSo = await _context.HoSoDangKyHocs
                 .Include(h => h.HocVien)
                 .Include(h => h.LopHoc)
-                    .ThenInclude(l => l.ChuongTrinhDaoTao)
+                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
                 .FirstOrDefaultAsync(h => h.MaHoSo == id);
 
             if (hoSo == null)
@@ -161,9 +163,21 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (hoSo.TrangThai != "Chờ duyệt")
+            if (hoSo.TrangThai != TrangThaiHoSo.ChoDuyet)
             {
                 TempData["ErrorMessage"] = "Chỉ hồ sơ ở trạng thái 'Chờ duyệt' mới được phép xét duyệt!";
+                return RedirectToAction(nameof(ChiTiet), new { id = hoSo.MaHoSo });
+            }
+
+            if (hoSo.HocVien == null || hoSo.LopHoc == null)
+            {
+                TempData["ErrorMessage"] = "Hồ sơ thiếu thông tin học viên hoặc lớp học nên không thể xét duyệt.";
+                return RedirectToAction(nameof(ChiTiet), new { id = hoSo.MaHoSo });
+            }
+
+            if (!hoSo.HocVien.TrangThai)
+            {
+                TempData["ErrorMessage"] = "Học viên đang bị khóa nên hồ sơ không thể được xét duyệt.";
                 return RedirectToAction(nameof(ChiTiet), new { id = hoSo.MaHoSo });
             }
 
@@ -172,7 +186,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (hoSo.MaLop > 0)
             {
                 daXepLop = await _context.HoSoDangKyHocs
-                    .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == "Được xếp lớp");
+                    .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == TrangThaiHoSo.DuocXepLop);
             }
 
             var viewModel = new XetDuyetHoSoViewModel
@@ -181,7 +195,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 HoSo = hoSo,
                 SiSoToiDa = siSoToiDa,
                 SoLuongDaXepLop = daXepLop,
-                KetQuaDuyet = "Đủ điều kiện"
+                KetQuaDuyet = TrangThaiHoSo.DuDieuKien
             };
 
             return View(viewModel);
@@ -194,7 +208,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var hoSo = await _context.HoSoDangKyHocs
                 .Include(h => h.HocVien)
                 .Include(h => h.LopHoc)
-                    .ThenInclude(l => l.ChuongTrinhDaoTao)
+                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
                 .FirstOrDefaultAsync(h => h.MaHoSo == model.MaHoSo);
 
             if (hoSo == null)
@@ -203,21 +217,30 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (hoSo.TrangThai != "Chờ duyệt")
+            if (hoSo.TrangThai != TrangThaiHoSo.ChoDuyet)
             {
                 TempData["ErrorMessage"] = "Hồ sơ này đã được xử lý trước đó rồi!";
                 return RedirectToAction(nameof(ChiTiet), new { id = hoSo.MaHoSo });
             }
 
-       
-            if (string.IsNullOrWhiteSpace(model.KetQuaDuyet))
+            if (hoSo.HocVien == null || hoSo.LopHoc == null)
             {
-                ModelState.AddModelError("KetQuaDuyet", "Vui lòng chọn kết quả xét duyệt.");
+                TempData["ErrorMessage"] = "Hồ sơ thiếu thông tin học viên hoặc lớp học nên không thể xét duyệt.";
+                return RedirectToAction(nameof(ChiTiet), new { id = hoSo.MaHoSo });
             }
 
-            if (string.IsNullOrWhiteSpace(model.NhanXetXetDuyet))
+            if (!hoSo.HocVien.TrangThai)
             {
-                ModelState.AddModelError("NhanXetXetDuyet", "Vui lòng nhập nhận xét / lý do xét duyệt.");
+                TempData["ErrorMessage"] = "Học viên đang bị khóa nên hồ sơ không thể được xét duyệt.";
+                return RedirectToAction(nameof(ChiTiet), new { id = hoSo.MaHoSo });
+            }
+
+            if (model.KetQuaDuyet != TrangThaiHoSo.DuDieuKien &&
+                model.KetQuaDuyet != TrangThaiHoSo.KhongDuDieuKien)
+            {
+                ModelState.AddModelError(
+                    nameof(model.KetQuaDuyet),
+                    "Vui lòng chọn một kết quả xét duyệt hợp lệ.");
             }
 
             if (!ModelState.IsValid)
@@ -228,7 +251,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 if (hoSo.MaLop > 0)
                 {
                     daXepLop = await _context.HoSoDangKyHocs
-                        .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == "Được xếp lớp");
+                        .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == TrangThaiHoSo.DuocXepLop);
                 }
                 model.SoLuongDaXepLop = daXepLop;
                 return View(model);

@@ -1,11 +1,16 @@
-﻿@* Họ và tên: Phan Thị Hương Trà *@
+@* Họ và tên: Phan Thị Hương Trà *@
 @* Mã sinh viên: 23103100139 *@
 @* Nội dung thực hiện: Xây dựng giao diện hiển thị chi tiết thông tin của một lớp học. *@
+@* Ẩn thao tác quản trị với người không có quyền: Nguyễn Văn Giáp, 22103100110. *@
 
 @model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LopHoc
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
 
 @{
     ViewData["Title"] = "Chi tiết lớp học";
+    var vaiTro = Context.Session.GetString(SessionKeys.VaiTro);
+    var coQuyenQuanLy = vaiTro == VaiTroTaiKhoan.Admin ||
+                        vaiTro == VaiTroTaiKhoan.NhanVienDaoTao;
 }
 
 <div class="container py-4">
@@ -162,17 +167,20 @@
 
             <div class="mt-4 d-flex gap-2">
 
-                <a asp-action="Edit"
-                   asp-route-id="@Model.MaLop"
-                   class="btn btn-primary">
-                    Sửa lớp học
-                </a>
+                @if (coQuyenQuanLy)
+                {
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.MaLop"
+                       class="btn btn-primary">
+                        Sửa lớp học
+                    </a>
 
-                <a asp-action="Delete"
-                   asp-route-id="@Model.MaLop"
-                   class="btn btn-danger">
-                    Xóa lớp học
-                </a>
+                    <a asp-action="Delete"
+                       asp-route-id="@Model.MaLop"
+                       class="btn btn-danger">
+                        Xóa lớp học
+                    </a>
+                }
 
                 <a asp-action="Index"
                    class="btn btn-secondary">

@@ -1,6 +1,7 @@
 // Họ và tên: Hà Trung Kiên
 // Mã sinh viên: 23103100058
 // Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
+// Nạp các lớp liên quan cho trang chi tiết chương trình: Nguyễn Văn Giáp, 22103100110.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
@@ -37,6 +38,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (id == null) return NotFound();
 
             var ctdt = await _context.ChuongTrinhDaoTaos
+                .Include(c => c.LopHocs)
                 .FirstOrDefaultAsync(m => m.MaChuongTrinhDaoTao == id);
             if (ctdt == null) return NotFound();
 
@@ -145,6 +147,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (id == null) return NotFound();
 
             var ctdt = await _context.ChuongTrinhDaoTaos
+                .Include(c => c.LopHocs)
                 .FirstOrDefaultAsync(m => m.MaChuongTrinhDaoTao == id);
             if (ctdt == null) return NotFound();
 

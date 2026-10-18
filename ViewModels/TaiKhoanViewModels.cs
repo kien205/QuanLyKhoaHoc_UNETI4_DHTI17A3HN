@@ -1,6 +1,7 @@
 ﻿// Họ và tên: Hà Trung Kiên
 // Mã sinh viên: 23103100058
 // Nội dung thực hiện: ViewModel quản lý tài khoản.
+// Bổ sung dữ liệu khởi tạo hồ sơ cho vai trò học viên: Nguyễn Văn Giáp, 22103100110.
 using System.ComponentModel.DataAnnotations;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
 
@@ -33,6 +34,13 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels
         [Required(ErrorMessage = "Vui lòng chọn vai trò")]
         [Display(Name = "Vai trò")]
         public string VaiTro { get; set; } = VaiTroTaiKhoan.HocVien;
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Ngày sinh học viên")]
+        public DateTime? NgaySinhHocVien { get; set; }
+
+        [Display(Name = "Giới tính học viên")]
+        public string? GioiTinhHocVien { get; set; }
     }
 
     public class TaiKhoanEditViewModel
@@ -60,5 +68,12 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels
         [DataType(DataType.Password)]
         [Display(Name = "Mật khẩu mới (để trống nếu không đổi)")]
         public string? MatKhauMoi { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Ngày sinh học viên")]
+        public DateTime? NgaySinhHocVien { get; set; }
+
+        [Display(Name = "Giới tính học viên")]
+        public string? GioiTinhHocVien { get; set; }
     }
 }

@@ -2,8 +2,10 @@
 Họ và tên: Tạ Thị Bích Loan 
 Mã sinh viên: 23103100147
 Nội dung thực hiện: Form cập nhật kết quả xét duyệt hồ sơ (Module 4)
+Sửa đồng bộ giá trị trạng thái với hằng số: Nguyễn Văn Giáp, 22103100110.
 *@
 @model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.XetDuyetHoSoViewModel
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
 
 @{
     ViewData["Title"] = "Xét duyệt hồ sơ #" + Model.MaHoSo;
@@ -40,11 +42,11 @@ Nội dung thực hiện: Form cập nhật kết quả xét duyệt hồ sơ (M
                     <label class="form-label fw-bold">Kết quả xét duyệt: <span class="text-danger">*</span></label>
                     <div class="mt-1">
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" asp-for="KetQuaDuyet" value="Đủ điều kiện" id="duDieuKien" />
+                            <input class="form-check-input" type="radio" asp-for="KetQuaDuyet" value="@TrangThaiHoSo.DuDieuKien" id="duDieuKien" />
                             <label class="form-check-label text-success fw-bold" for="duDieuKien">Đủ điều kiện</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" asp-for="KetQuaDuyet" value="Không đủ điều kiện" id="khongDuDieuKien" />
+                            <input class="form-check-input" type="radio" asp-for="KetQuaDuyet" value="@TrangThaiHoSo.KhongDuDieuKien" id="khongDuDieuKien" />
                             <label class="form-check-label text-danger fw-bold" for="khongDuDieuKien">Không đủ điều kiện</label>
                         </div>
                     </div>

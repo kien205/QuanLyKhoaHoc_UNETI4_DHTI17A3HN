@@ -5,7 +5,10 @@
     ViewData["Title"] = "Từ chối truy cập";
 }
 
-<div class="alert alert-danger mt-4">
-    <h4>Bạn không có quyền truy cập chức năng này.</h4>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-2">Về trang chủ</a>
+<div class="state-card state-card-warning">
+    <span class="state-card-icon" aria-hidden="true">!</span>
+    <span class="section-kicker">KHÔNG THỂ TRUY CẬP</span>
+    <h1>Bạn chưa có quyền xem trang này.</h1>
+    <p>Hãy kiểm tra tài khoản đang đăng nhập hoặc quay lại trang chủ để tiếp tục.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Về trang chủ <span aria-hidden="true">→</span></a>
 </div>

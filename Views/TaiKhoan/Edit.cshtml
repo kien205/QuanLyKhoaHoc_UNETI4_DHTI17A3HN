@@ -1,4 +1,5 @@
 ﻿@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.TaiKhoanEditViewModel
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
 
 @{
     ViewData["Title"] = "Sửa tài khoản";
@@ -32,6 +33,24 @@
                 <select asp-for="VaiTro" asp-items="(SelectList)ViewBag.DanhSachVaiTro" class="form-select"></select>
                 <span asp-validation-for="VaiTro" class="text-danger"></span>
             </div>
+            <div id="hocVienFields">
+                <p class="text-muted">Cần nhập khi chuyển tài khoản sang vai trò học viên.</p>
+                <div class="mb-3">
+                    <label asp-for="NgaySinhHocVien" class="form-label"></label>
+                    <input asp-for="NgaySinhHocVien" class="form-control" />
+                    <span asp-validation-for="NgaySinhHocVien" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="GioiTinhHocVien" class="form-label"></label>
+                    <select asp-for="GioiTinhHocVien" class="form-select">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <span asp-validation-for="GioiTinhHocVien" class="text-danger"></span>
+                </div>
+            </div>
             <div class="mb-3">
                 <label asp-for="MatKhauMoi" class="form-label"></label>
                 <input asp-for="MatKhauMoi" class="form-control" />
@@ -46,4 +65,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const roleSelect = document.getElementById("VaiTro");
+        const studentFields = document.getElementById("hocVienFields");
+        const updateStudentFields = () => {
+            studentFields.hidden = roleSelect.value !== "@VaiTroTaiKhoan.HocVien";
+        };
+        roleSelect.addEventListener("change", updateStudentFields);
+        updateStudentFields();
+    </script>
 }
