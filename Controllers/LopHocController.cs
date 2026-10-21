@@ -1,6 +1,7 @@
 ﻿// Họ và tên: Phan Thị Hương Trà
 // Mã sinh viên: 23103100139
 // Nội dung thực hiện: Xây dựng Controller quản lý lớp học gồm CRUD, tìm kiếm, lọc, sắp xếp, phân trang và kiểm tra nghiệp vụ.
+// Sửa lỗi phân quyền và kiểm tra dữ liệu: Nguyễn Văn Giáp, 22103100110.
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
+using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
@@ -230,6 +232,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         }
 
         [HttpGet]
+        [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> Create()
         {
             await LoadChuongTrinhDaoTao();
@@ -239,6 +242,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> Create(LopHoc lopHoc)
         {
             ValidateNghiepVuLopHoc(lopHoc);
@@ -264,6 +268,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         }
 
         [HttpGet]
+        [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -287,6 +292,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> Edit(
             int id,
             LopHoc lopHoc)
@@ -357,6 +363,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         }
 
         [HttpGet]
+        [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -378,6 +385,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var lopHoc = await _context.LopHocs
@@ -433,18 +441,13 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                     "Trình độ đầu vào là bắt buộc.");
             }
 
-            if (lopHoc.DiemDauVao < 0)
+            if (!double.IsFinite(lopHoc.DiemDauVao) ||
+                lopHoc.DiemDauVao < 0 ||
+                lopHoc.DiemDauVao > 100)
             {
                 ModelState.AddModelError(
                     nameof(LopHoc.DiemDauVao),
-                    "Điểm đầu vào không được nhỏ hơn 0.");
-            }
-
-            if (lopHoc.DiemDauVao > 10)
-            {
-                ModelState.AddModelError(
-                    nameof(LopHoc.DiemDauVao),
-                    "Điểm đầu vào không được lớn hơn 10.");
+                    "Điểm đầu vào phải nằm trong khoảng từ 0 đến 100.");
             }
 
             if (lopHoc.HanDangKy < lopHoc.NgayBatDauDangKy)
@@ -454,11 +457,14 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                     "Hạn đăng ký phải lớn hơn hoặc bằng ngày bắt đầu đăng ký.");
             }
 
-            if (string.IsNullOrWhiteSpace(lopHoc.TrangThai))
+            if (lopHoc.TrangThai != TrangThaiLop.ChuaMo &&
+                lopHoc.TrangThai != TrangThaiLop.DangMoDangKy &&
+                lopHoc.TrangThai != TrangThaiLop.TamDung &&
+                lopHoc.TrangThai != TrangThaiLop.DaDong)
             {
                 ModelState.AddModelError(
                     nameof(LopHoc.TrangThai),
-                    "Vui lòng chọn trạng thái lớp học.");
+                    "Trạng thái lớp học không hợp lệ.");
             }
 
             if (lopHoc.TrangThai == TrangThaiLop.DangMoDangKy)

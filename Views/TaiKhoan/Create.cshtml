@@ -1,4 +1,5 @@
 ﻿@model QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels.TaiKhoanCreateViewModel
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
 
 @{
     ViewData["Title"] = "Thêm tài khoản";
@@ -38,6 +39,25 @@
                 <span asp-validation-for="VaiTro" class="text-danger"></span>
             </div>
 
+            <div id="hocVienFields">
+                <p class="text-muted">Thông tin này bắt buộc khi tạo tài khoản học viên.</p>
+                <div class="mb-3">
+                    <label asp-for="NgaySinhHocVien" class="form-label"></label>
+                    <input asp-for="NgaySinhHocVien" class="form-control" />
+                    <span asp-validation-for="NgaySinhHocVien" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="GioiTinhHocVien" class="form-label"></label>
+                    <select asp-for="GioiTinhHocVien" class="form-select">
+                        <option value="">-- Chọn giới tính --</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <span asp-validation-for="GioiTinhHocVien" class="text-danger"></span>
+                </div>
+            </div>
+
             <button type="submit" class="btn btn-primary">Lưu</button>
             <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
         </form>
@@ -46,4 +66,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const roleSelect = document.getElementById("VaiTro");
+        const studentFields = document.getElementById("hocVienFields");
+        const updateStudentFields = () => {
+            studentFields.hidden = roleSelect.value !== "@VaiTroTaiKhoan.HocVien";
+        };
+        roleSelect.addEventListener("change", updateStudentFields);
+        updateStudentFields();
+    </script>
 }

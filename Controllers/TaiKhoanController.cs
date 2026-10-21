@@ -1,6 +1,7 @@
 ﻿// Họ và tên: Hà Trung Kiên
 // Mã sinh viên: 23103100058
 // Nội dung thực hiện: Đăng nhập, đăng xuất, Session và quản lý tài khoản (Admin).
+// Tự tạo/liên kết hồ sơ học viên khi phân vai trò: Nguyễn Văn Giáp, 22103100110.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -93,6 +94,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (!DanhSachVaiTro.Contains(model.VaiTro))
                 ModelState.AddModelError(nameof(model.VaiTro), "Vai trò không hợp lệ.");
 
+            ValidateThongTinHocVien(
+                model.VaiTro,
+                model.NgaySinhHocVien,
+                model.GioiTinhHocVien);
+
             if (await _db.TaiKhoans.AnyAsync(t => t.TenDangNhap == model.TenDangNhap))
                 ModelState.AddModelError(nameof(model.TenDangNhap), "Tên đăng nhập đã tồn tại.");
 
@@ -102,7 +108,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return View(model);
             }
 
-            _db.TaiKhoans.Add(new TaiKhoan
+            var taiKhoan = new TaiKhoan
             {
                 TenDangNhap = model.TenDangNhap,
                 MatKhau = model.MatKhau,
@@ -110,7 +116,21 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 Email = model.Email.Trim(),
                 VaiTro = model.VaiTro,
                 TrangThai = true
-            });
+            };
+
+            if (model.VaiTro == VaiTroTaiKhoan.HocVien)
+            {
+                taiKhoan.HocVien = new HocVien
+                {
+                    HoTen = taiKhoan.HoTen,
+                    Email = taiKhoan.Email,
+                    NgaySinh = model.NgaySinhHocVien!.Value.Date,
+                    GioiTinh = model.GioiTinhHocVien!,
+                    TrangThai = true
+                };
+            }
+
+            _db.TaiKhoans.Add(taiKhoan);
             await _db.SaveChangesAsync();
 
             TempData["ThanhCong"] = "Đã thêm tài khoản.";
@@ -125,13 +145,18 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (tk == null) return NotFound();
 
             NapVaiTro();
+            var hocVien = await _db.HocViens
+                .AsNoTracking()
+                .SingleOrDefaultAsync(h => h.MaTaiKhoan == tk.MaTaiKhoan);
             return View(new TaiKhoanEditViewModel
             {
                 MaTaiKhoan = tk.MaTaiKhoan,
                 TenDangNhap = tk.TenDangNhap,
                 HoTen = tk.HoTen,
                 Email = tk.Email,
-                VaiTro = tk.VaiTro
+                VaiTro = tk.VaiTro,
+                NgaySinhHocVien = hocVien?.NgaySinh,
+                GioiTinhHocVien = hocVien?.GioiTinh
             });
         }
 
@@ -143,12 +168,18 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var tk = await _db.TaiKhoans.FindAsync(id);
             if (tk == null) return NotFound();
 
+            var hocVien = await _db.HocViens
+                .SingleOrDefaultAsync(h => h.MaTaiKhoan == tk.MaTaiKhoan);
             var maHienTai = HttpContext.Session.GetInt32(SessionKeys.MaTaiKhoan);
 
             if (!DanhSachVaiTro.Contains(model.VaiTro))
                 ModelState.AddModelError(nameof(model.VaiTro), "Vai trò không hợp lệ.");
 
-        
+            ValidateThongTinHocVien(
+                model.VaiTro,
+                model.NgaySinhHocVien,
+                model.GioiTinhHocVien);
+
             if (tk.MaTaiKhoan == maHienTai && model.VaiTro != tk.VaiTro)
                 ModelState.AddModelError(nameof(model.VaiTro), "Không thể tự đổi vai trò của chính mình.");
 
@@ -164,6 +195,24 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             tk.VaiTro = model.VaiTro;
             if (!string.IsNullOrWhiteSpace(model.MatKhauMoi))
                 tk.MatKhau = model.MatKhauMoi;
+
+            if (tk.VaiTro == VaiTroTaiKhoan.HocVien)
+            {
+                if (hocVien == null)
+                {
+                    hocVien = new HocVien
+                    {
+                        MaTaiKhoan = tk.MaTaiKhoan,
+                        HoTen = tk.HoTen,
+                        Email = tk.Email,
+                        TrangThai = true
+                    };
+                    _db.HocViens.Add(hocVien);
+                }
+
+                hocVien.NgaySinh = model.NgaySinhHocVien!.Value.Date;
+                hocVien.GioiTinh = model.GioiTinhHocVien!;
+            }
 
             await _db.SaveChangesAsync();
 
@@ -192,6 +241,31 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             TempData["ThanhCong"] = tk.TrangThai ? "Đã mở khóa tài khoản." : "Đã khóa tài khoản.";
             return RedirectToAction(nameof(Index));
+        }
+
+        private void ValidateThongTinHocVien(
+            string vaiTro,
+            DateTime? ngaySinh,
+            string? gioiTinh)
+        {
+            if (vaiTro != VaiTroTaiKhoan.HocVien)
+                return;
+
+            if (!ngaySinh.HasValue ||
+                ngaySinh.Value == default ||
+                ngaySinh.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    nameof(TaiKhoanCreateViewModel.NgaySinhHocVien),
+                    "Vui lòng nhập ngày sinh hợp lệ, không ở tương lai.");
+            }
+
+            if (gioiTinh is not ("Nam" or "Nữ" or "Khác"))
+            {
+                ModelState.AddModelError(
+                    nameof(TaiKhoanCreateViewModel.GioiTinhHocVien),
+                    "Vui lòng chọn giới tính hợp lệ.");
+            }
         }
     }
 }

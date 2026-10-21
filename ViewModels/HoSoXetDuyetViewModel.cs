@@ -1,9 +1,11 @@
 ﻿// Họ và tên: Tạ Thị Bích Loan 
 // Mã sinh viên: 23103100147
 // Nội dung thực hiện: ViewModel Module 4 - Quản lý lọc, tìm kiếm, phân trang và xét duyệt hồ sơ
+// Sửa kiểm tra đầu vào xét duyệt: Nguyễn Văn Giáp, 22103100110.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels
@@ -30,7 +32,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels
         public int MaHoSo { get; set; }
         public HoSoDangKyHoc? HoSo { get; set; }
 
-        public string KetQuaDuyet { get; set; } = string.Empty; 
+        [Required(ErrorMessage = "Vui lòng chọn kết quả xét duyệt.")]
+        public string KetQuaDuyet { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập nhận xét / lý do xét duyệt.")]
+        [StringLength(1000, ErrorMessage = "Nhận xét không được vượt quá 1000 ký tự.")]
         public string? NhanXetXetDuyet { get; set; }
         public int SiSoToiDa { get; set; }
         public int SoLuongDaXepLop { get; set; }

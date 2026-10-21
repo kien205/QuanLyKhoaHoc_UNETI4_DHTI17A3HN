@@ -1,8 +1,193 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@* Họ và tên: Nguyễn Văn Giáp
+   Mã sinh viên: 22103100110
+   Nội dung thực hiện: Làm mới trang chủ theo phong cách dashboard giáo dục hiện đại. *@
+@using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models
+@using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo
+@{
+    var vaiTro = Context.Session.GetString(SessionKeys.VaiTro);
+    var hoTen = Context.Session.GetString(SessionKeys.HoTen);
+    var laHocVien = vaiTro == VaiTroTaiKhoan.HocVien;
+    var laNhanVien = vaiTro == VaiTroTaiKhoan.NhanVienDaoTao;
+    var laAdmin = vaiTro == VaiTroTaiKhoan.Admin;
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="home-hero">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+    <div class="row align-items-center g-4 position-relative">
+        <div class="col-lg-7">
+            <div class="hero-eyebrow"><span></span> NỀN TẢNG QUẢN LÝ ĐÀO TẠO UNETI</div>
+            @if (laHocVien)
+            {
+                <h1>Chào @hoTen,<br /><span>hành trình học tập</span> bắt đầu từ đây.</h1>
+                <p class="hero-description">Khám phá lớp học phù hợp, theo dõi hồ sơ đăng ký và cập nhật thông tin cá nhân trong một không gian duy nhất.</p>
+            }
+            else if (laNhanVien)
+            {
+                <h1>Xin chào @hoTen,<br /><span>đào tạo gọn gàng</span> hơn mỗi ngày.</h1>
+                <p class="hero-description">Tiếp nhận hồ sơ, sắp xếp lịch kiểm tra và theo dõi tiến độ tuyển sinh trên cùng một bảng điều khiển.</p>
+            }
+            else if (laAdmin)
+            {
+                <h1>Chào mừng trở lại,<br /><span>@hoTen</span>.</h1>
+                <p class="hero-description">Quản lý chương trình, lớp học, tài khoản và dữ liệu đào tạo với quy trình rõ ràng, dễ theo dõi.</p>
+            }
+            else
+            {
+                <h1>Học điều mình thích.<br /><span>Tiến xa theo cách riêng.</span></h1>
+                <p class="hero-description">Tìm chương trình phù hợp, khám phá lớp học mới và bắt đầu hành trình phát triển bản thân cùng UNETI.</p>
+            }
+
+            <div class="hero-actions">
+                @if (laHocVien)
+                {
+                    <a asp-controller="DangKyHoc" asp-action="LopDangMo" class="btn btn-primary btn-lg">Khám phá lớp học <span aria-hidden="true">→</span></a>
+                    <a asp-controller="DangKyHoc" asp-action="HoSoCuaToi" class="btn btn-outline-light btn-lg">Theo dõi hồ sơ</a>
+                }
+                else if (laNhanVien)
+                {
+                    <a asp-controller="HoSoXetDuyet" asp-action="Index" class="btn btn-primary btn-lg">Xử lý hồ sơ <span aria-hidden="true">→</span></a>
+                    <a asp-controller="ThongKe" asp-action="Index" class="btn btn-outline-light btn-lg">Xem thống kê</a>
+                }
+                else if (laAdmin)
+                {
+                    <a asp-controller="ChuongTrinhDaoTao" asp-action="Index" class="btn btn-primary btn-lg">Quản lý đào tạo <span aria-hidden="true">→</span></a>
+                    <a asp-controller="TaiKhoan" asp-action="Index" class="btn btn-outline-light btn-lg">Tài khoản</a>
+                }
+                else
+                {
+                    <a asp-controller="LopHoc" asp-action="Index" class="btn btn-primary btn-lg">Khám phá lớp học <span aria-hidden="true">→</span></a>
+                    <a asp-controller="TaiKhoan" asp-action="DangNhap" class="btn btn-outline-light btn-lg">Đăng nhập</a>
+                }
+            </div>
+
+            <div class="hero-proof">
+                <span class="proof-dots" aria-hidden="true"><i>U</i><i>+</i><i>✓</i></span>
+                <span><strong>Một nơi cho mọi bước</strong><small>Từ đăng ký đến hoàn thành khóa học</small></span>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="learning-card">
+                <div class="learning-card-top">
+                    <span class="learning-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="m3 9 9-5 9 5-9 5-9-5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 11.3v4.2c2.8 2.1 7.2 2.1 10 0v-4.2M21 9v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <span class="live-label"><i></i> LEARNING JOURNEY</span>
+                </div>
+                <h2>Mỗi bước tiến<br />đều đáng tự hào.</h2>
+                <p>Theo dõi hành trình của bạn từ lúc chọn lớp đến ngày bắt đầu học.</p>
+
+                <div class="journey-steps">
+                    <div class="journey-step journey-step-done">
+                        <span class="step-marker">✓</span>
+                        <span><strong>Chọn chương trình</strong><small>Tìm khóa học dành cho bạn</small></span>
+                        <b>01</b>
+                    </div>
+                    <div class="journey-connector"></div>
+                    <div class="journey-step journey-step-current">
+                        <span class="step-marker">02</span>
+                        <span><strong>Gửi hồ sơ đăng ký</strong><small>Đội ngũ đào tạo sẽ hỗ trợ bạn</small></span>
+                        <span class="step-arrow" aria-hidden="true">↗</span>
+                    </div>
+                    <div class="journey-connector"></div>
+                    <div class="journey-step">
+                        <span class="step-marker">03</span>
+                        <span><strong>Sẵn sàng nhập học</strong><small>Bắt đầu chặng đường mới</small></span>
+                        <b>03</b>
+                    </div>
+                </div>
+                <div class="learning-card-footer"><span>LEARN</span><span>GROW</span><span>GO FURTHER <b>↗</b></span></div>
+                <div class="hero-orbit orbit-one"></div>
+                <div class="hero-orbit orbit-two"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-shortcuts">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">BẮT ĐẦU TỪ ĐÂU?</span>
+            <h2>Mọi thứ bạn cần, ngay tại đây.</h2>
+        </div>
+        <span class="section-note">Một trải nghiệm đơn giản cho cả người học và đội ngũ đào tạo.</span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-4">
+            <a asp-controller="LopHoc" asp-action="Index" class="shortcut-card">
+                <span class="shortcut-icon shortcut-icon-blue" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 19a2 2 0 0 1 2-2h14M8 7h8M8 10h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </span>
+                <span class="shortcut-copy"><strong>Khám phá lớp học</strong><small>Xem chương trình và lớp đang tuyển sinh</small></span>
+                <span class="shortcut-arrow" aria-hidden="true">↗</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            @if (laHocVien)
+            {
+                <a asp-controller="DangKyHoc" asp-action="HoSoCuaToi" class="shortcut-card">
+                    <span class="shortcut-icon shortcut-icon-violet" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="shortcut-copy"><strong>Hồ sơ của tôi</strong><small>Theo dõi tiến độ và kết quả đăng ký</small></span>
+                    <span class="shortcut-arrow" aria-hidden="true">↗</span>
+                </a>
+            }
+            else if (laAdmin || laNhanVien)
+            {
+                <a asp-controller="HoSoXetDuyet" asp-action="Index" class="shortcut-card">
+                    <span class="shortcut-icon shortcut-icon-violet" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v5h5M9 13h6M9 17h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="shortcut-copy"><strong>Tiếp nhận hồ sơ</strong><small>Kiểm tra và xử lý đăng ký học viên</small></span>
+                    <span class="shortcut-arrow" aria-hidden="true">↗</span>
+                </a>
+            }
+            else
+            {
+                <a asp-controller="TaiKhoan" asp-action="DangNhap" class="shortcut-card">
+                    <span class="shortcut-icon shortcut-icon-violet" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="shortcut-copy"><strong>Khu vực cá nhân</strong><small>Đăng nhập để quản lý hành trình học tập</small></span>
+                    <span class="shortcut-arrow" aria-hidden="true">↗</span>
+                </a>
+            }
+        </div>
+        <div class="col-md-6 col-xl-4">
+            @if (laHocVien)
+            {
+                <a asp-controller="HocVien" asp-action="Index" class="shortcut-card">
+                    <span class="shortcut-icon shortcut-icon-green" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M4 21a8 8 0 0 1 16 0M17 3.5a4 4 0 0 1 0 7.5M20 14a7 7 0 0 1 2 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    </span>
+                    <span class="shortcut-copy"><strong>Hồ sơ cá nhân</strong><small>Cập nhật thông tin để đăng ký thuận tiện</small></span>
+                    <span class="shortcut-arrow" aria-hidden="true">↗</span>
+                </a>
+            }
+            else if (laAdmin)
+            {
+                <a asp-controller="ThongKe" asp-action="Index" class="shortcut-card">
+                    <span class="shortcut-icon shortcut-icon-green" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h17M8 15l4-4 3 2 5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 7h3v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <span class="shortcut-copy"><strong>Tổng quan đào tạo</strong><small>Theo dõi số liệu và hoạt động tuyển sinh</small></span>
+                    <span class="shortcut-arrow" aria-hidden="true">↗</span>
+                </a>
+            }
+            else
+            {
+                <a asp-controller="TaiKhoan" asp-action="DangNhap" class="shortcut-card">
+                    <span class="shortcut-icon shortcut-icon-green" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <span class="shortcut-copy"><strong>Sẵn sàng bắt đầu?</strong><small>Đăng nhập để tiếp tục với tài khoản của bạn</small></span>
+                    <span class="shortcut-arrow" aria-hidden="true">↗</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
