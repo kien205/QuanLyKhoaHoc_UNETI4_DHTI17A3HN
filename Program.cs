@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN
 {
@@ -10,6 +12,17 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Đăng ký Repository (mỗi Controller một Repository, vòng đời Scoped giống AppDbContext)
+            builder.Services.AddScoped<IChuongTrinhDaoTaoRepository, ChuongTrinhDaoTaoRepository>();
+            builder.Services.AddScoped<IHocVienRepository, HocVienRepository>();
+            builder.Services.AddScoped<IDangKyHocRepository, DangKyHocRepository>();
+            builder.Services.AddScoped<IHoSoXetDuyetRepository, HoSoXetDuyetRepository>();
+            builder.Services.AddScoped<IKetQuaXepLopRepository, KetQuaXepLopRepository>();
+            builder.Services.AddScoped<ILichKiemTraDauVaoRepository, LichKiemTraDauVaoRepository>();
+            builder.Services.AddScoped<ILopHocRepository, LopHocRepository>();
+            builder.Services.AddScoped<ITaiKhoanRepository, TaiKhoanRepository>();
+            builder.Services.AddScoped<IThongKeRepository, ThongKeRepository>();
 
             builder.Services.AddSession(o =>
             {

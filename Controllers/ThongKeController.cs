@@ -1,10 +1,10 @@
-﻿// Họ và tên: Lê Đức Long
+// Họ và tên: Lê Đức Long
 // Mã sinh viên: 23103100015
 // Nội dung thực hiện: Dashboard 9 chỉ số (Index) và 10 thống kê LINQ (ChiTiet).
+// Truy vấn CSDL được tách sang IThongKeRepository.
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
@@ -14,11 +14,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
     [PhanQuyen(VaiTroTaiKhoan.Admin, VaiTroTaiKhoan.NhanVienDaoTao)]
     public class ThongKeController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IThongKeRepository _repo;
 
-        public ThongKeController(AppDbContext context)
+        public ThongKeController(IThongKeRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         private static double TyLe(int tu, int mau)
@@ -33,16 +33,15 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             var bayGio = DateTime.Now;
             var vm = new DashboardViewModel
             {
-                TongChuongTrinh = await _context.ChuongTrinhDaoTaos.CountAsync(),
-                TongLop = await _context.LopHocs.CountAsync(),
-                LopDangMo = await _context.LopHocs.CountAsync(l => l.TrangThai == TrangThaiLop.DangMoDangKy),
-                TongHocVien = await _context.HocViens.CountAsync(),
-                TongHoSo = await _context.HoSoDangKyHocs.CountAsync(),
-                HoSoChoDuyet = await _context.HoSoDangKyHocs.CountAsync(h => h.TrangThai == TrangThaiHoSo.ChoDuyet),
-                HoSoDuDieuKien = await _context.HoSoDangKyHocs.CountAsync(h => h.TrangThai == TrangThaiHoSo.DuDieuKien),
-                LichSapToi = await _context.LichKiemTraDauVaos.CountAsync(l =>
-                    l.TrangThai == TrangThaiLich.DaLenLich && l.ThoiGianBatDau >= bayGio),
-                HoSoDuocXepLop = await _context.HoSoDangKyHocs.CountAsync(h => h.TrangThai == TrangThaiHoSo.DuocXepLop)
+                TongChuongTrinh = await _repo.DemChuongTrinhAsync(),
+                TongLop = await _repo.DemLopAsync(),
+                LopDangMo = await _repo.DemLopAsync(TrangThaiLop.DangMoDangKy),
+                TongHocVien = await _repo.DemHocVienAsync(),
+                TongHoSo = await _repo.DemHoSoAsync(),
+                HoSoChoDuyet = await _repo.DemHoSoAsync(TrangThaiHoSo.ChoDuyet),
+                HoSoDuDieuKien = await _repo.DemHoSoAsync(TrangThaiHoSo.DuDieuKien),
+                LichSapToi = await _repo.DemLichSapToiAsync(bayGio),
+                HoSoDuocXepLop = await _repo.DemHoSoAsync(TrangThaiHoSo.DuocXepLop)
             };
             return View(vm);
         }
@@ -52,10 +51,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         {
             var vm = new ThongKeChiTietViewModel();
 
-            var tk1 = await _context.ChuongTrinhDaoTaos
-                .OrderBy(c => c.TenChuongTrinhDaoTao)
-                .Select(c => new { Nhan = c.TenChuongTrinhDaoTao, SoLuong = c.LopHocs.Count() })
-                .ToListAsync();
+            var tk1 = await _repo.DemLopTheoChuongTrinhAsync();
             vm.LopTheoChuongTrinh = tk1.Select(x => Dong(x.Nhan, x.SoLuong)).ToList();
 
             var daQuaDuyet = new[]
@@ -65,41 +61,26 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             };
             var daXetDuyet = daQuaDuyet.Append(TrangThaiHoSo.KhongDuDieuKien).ToArray();
 
-            var theoLop = await _context.HoSoDangKyHocs
-                .GroupBy(h => h.MaLop)
-                .Select(g => new
-                {
-                    MaLop = g.Key,
-                    Tong = g.Count(),
-                    QuaDuyet = g.Count(h => daQuaDuyet.Contains(h.TrangThai)),
-                    DaXet = g.Count(h => daXetDuyet.Contains(h.TrangThai))
-                })
-                .ToListAsync();
-
-            var cacLop = await _context.LopHocs
-                .OrderBy(l => l.TenLop)
-                .Select(l => new { l.MaLop, l.TenLop })
-                .ToListAsync();
+            var theoLop = await _repo.ThongKeHoSoTheoLopAsync(daQuaDuyet, daXetDuyet);
+            var cacLop = await _repo.LayDanhSachLopAsync();
 
             vm.HoSoTheoLop = cacLop.Select(l =>
             {
+                // Lớp chưa có hồ sơ: FirstOrDefault trả về tuple mặc định (toàn số 0).
                 var x = theoLop.FirstOrDefault(t => t.MaLop == l.MaLop);
-                int quaDuyet = x?.QuaDuyet ?? 0;
-                int daXet = x?.DaXet ?? 0;
+                int quaDuyet = x.QuaDuyet;
+                int daXet = x.DaXet;
                 return new ThongKeLopViewModel
                 {
                     TenLop = l.TenLop,
-                    TongHoSo = x?.Tong ?? 0,
+                    TongHoSo = x.Tong,
                     DaQuaDuyet = quaDuyet,
                     DaXetDuyet = daXet,
                     TyLeQuaDuyet = TyLe(quaDuyet, daXet)
                 };
             }).ToList();
 
-            var tk3 = await _context.HoSoDangKyHocs
-                .GroupBy(h => h.TrangThai)
-                .Select(g => new { Nhan = g.Key, SoLuong = g.Count() })
-                .ToListAsync();
+            var tk3 = await _repo.DemHoSoTheoTrangThaiAsync();
             vm.HoSoTheoTrangThai = tk3
                 .OrderByDescending(x => x.SoLuong)
                 .Select(x => Dong(x.Nhan, x.SoLuong)).ToList();
@@ -110,36 +91,19 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 : vm.HoSoTheoLop.Where(l => l.TongHoSo == max)
                     .Select(l => Dong(l.TenLop, l.TongHoSo)).ToList();
 
-            var tk6 = await _context.ChuongTrinhDaoTaos
-                .OrderBy(c => c.TenChuongTrinhDaoTao)
-                .Select(c => new
-                {
-                    Nhan = c.TenChuongTrinhDaoTao,
-                    SoLuong = _context.HoSoDangKyHocs.Count(h =>
-                        h.LopHoc!.MaChuongTrinhDaoTao == c.MaChuongTrinhDaoTao &&
-                        h.TrangThai == TrangThaiHoSo.DuocXepLop)
-                })
-                .ToListAsync();
+            var tk6 = await _repo.DemXepLopTheoChuongTrinhAsync();
             vm.XepLopTheoChuongTrinh = tk6.Select(x => Dong(x.Nhan, x.SoLuong)).ToList();
 
-            var hoSoThang = await _context.HoSoDangKyHocs
-                .GroupBy(h => new { h.NgayNop.Year, h.NgayNop.Month })
-                .Select(g => new { g.Key.Year, g.Key.Month, SoLuong = g.Count() })
-                .OrderBy(x => x.Year).ThenBy(x => x.Month)
-                .ToListAsync();
+            var hoSoThang = await _repo.DemHoSoTheoThangAsync();
             vm.HoSoTheoThang = hoSoThang
-                .Select(x => Dong($"{x.Month:00}/{x.Year}", x.SoLuong)).ToList();
+                .Select(x => Dong($"{x.Thang:00}/{x.Nam}", x.SoLuong)).ToList();
 
-            var lichThang = await _context.LichKiemTraDauVaos
-                .GroupBy(l => new { l.ThoiGianBatDau.Year, l.ThoiGianBatDau.Month })
-                .Select(g => new { g.Key.Year, g.Key.Month, SoLuong = g.Count() })
-                .OrderBy(x => x.Year).ThenBy(x => x.Month)
-                .ToListAsync();
+            var lichThang = await _repo.DemLichTheoThangAsync();
             vm.LichTheoThang = lichThang
-                .Select(x => Dong($"{x.Month:00}/{x.Year}", x.SoLuong)).ToList();
+                .Select(x => Dong($"{x.Thang:00}/{x.Nam}", x.SoLuong)).ToList();
 
-            vm.SoDuocXepLop = await _context.HoSoDangKyHocs.CountAsync(h => h.TrangThai == TrangThaiHoSo.DuocXepLop);
-            int chuaXep = await _context.HoSoDangKyHocs.CountAsync(h => h.TrangThai == TrangThaiHoSo.ChuaDuocXepLop);
+            vm.SoDuocXepLop = await _repo.DemHoSoAsync(TrangThaiHoSo.DuocXepLop);
+            int chuaXep = await _repo.DemHoSoAsync(TrangThaiHoSo.ChuaDuocXepLop);
             vm.SoDaKiemTra = vm.SoDuocXepLop + chuaXep;
             vm.TyLeXepLop = TyLe(vm.SoDuocXepLop, vm.SoDaKiemTra);
 

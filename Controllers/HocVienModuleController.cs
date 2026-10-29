@@ -1,22 +1,22 @@
 // Họ và tên: Nguyễn Văn Giáp
 // Mã sinh viên: 22103100110
 // Nội dung thực hiện: Helper dùng chung cho các chức năng học viên.
+// Truy vấn CSDL được tách sang IHocVienRepository.
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 {
     public abstract class HocVienModuleController : Controller
     {
-        protected readonly AppDbContext Db;
+        protected readonly IHocVienRepository HocVienRepo;
 
-        protected HocVienModuleController(AppDbContext db)
+        protected HocVienModuleController(IHocVienRepository hocVienRepo)
         {
-            Db = db;
+            HocVienRepo = hocVienRepo;
         }
 
         protected Task<HocVien?> LayHocVienHienTaiAsync(bool theoDoiThayDoi = false)
@@ -25,11 +25,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (maTaiKhoan == null)
                 return Task.FromResult<HocVien?>(null);
 
-            IQueryable<HocVien> hocViens = Db.HocViens;
-            if (!theoDoiThayDoi)
-                hocViens = hocViens.AsNoTracking();
-
-            return hocViens.SingleOrDefaultAsync(h => h.MaTaiKhoan == maTaiKhoan.Value);
+            return HocVienRepo.LayTheoMaTaiKhoanAsync(maTaiKhoan.Value, theoDoiThayDoi);
         }
 
         protected IActionResult BaoThieuHoSoHocVien()

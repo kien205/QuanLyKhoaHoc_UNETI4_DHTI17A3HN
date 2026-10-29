@@ -24,15 +24,17 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<ChuongTrinhDaoTao>().HasIndex(c => c.TenChuongTrinhDaoTao).IsUnique();
-
             modelBuilder.Entity<TaiKhoan>().HasIndex(t => t.TenDangNhap).IsUnique();
 
-            modelBuilder.Entity<LopHoc>().HasOne(l => l.ChuongTrinhDaoTao)
+            modelBuilder.Entity<LopHoc>()
+                .HasOne(l => l.ChuongTrinhDaoTao)
                 .WithMany(c => c.LopHocs)
                 .HasForeignKey(l => l.MaChuongTrinhDaoTao);
+
             modelBuilder.Entity<TaiKhoan>()
-              .HasOne(t => t.HocVien).WithOne(h => h.TaiKhoan)
-              .HasForeignKey<HocVien>(h => h.MaTaiKhoan);
+                .HasOne(t => t.HocVien)
+                .WithOne(h => h.TaiKhoan)
+                .HasForeignKey<HocVien>(h => h.MaTaiKhoan);
 
             modelBuilder.Entity<HoSoDangKyHoc>()
                 .HasOne(h => h.HocVien)
@@ -40,25 +42,19 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data
                 .HasForeignKey(h => h.MaHocVien);
 
             modelBuilder.Entity<HoSoDangKyHoc>()
-                .HasOne(h => h.HocVien)
-                .WithMany(hv => hv.HoSoDangKyHocs)
+                .HasOne(h => h.LopHoc)
+                .WithMany(l => l.hoSoDangKyHoc)
                 .HasForeignKey(h => h.MaLop);
 
             modelBuilder.Entity<HoSoDangKyHoc>()
-              .HasOne(h => h.KetQuaXepLop).WithOne(k => k.HoSoDangKyHoc)
-              .HasForeignKey<KetQuaXepLop>(k => k.MaHoSo);
+                .HasOne(h => h.KetQuaXepLop)
+                .WithOne(k => k.HoSoDangKyHoc)
+                .HasForeignKey<KetQuaXepLop>(k => k.MaHoSo);
 
-            modelBuilder.Entity<HoSoDangKyHoc>()
-              .HasOne(h => h.HocVien).WithMany(v => v.HoSoDangKyHocs)
-              .HasForeignKey(h => h.MaHocVien);
-
-            modelBuilder.Entity<HoSoDangKyHoc>()
-                .HasOne(h => h.LopHoc).WithMany(l => l.hoSoDangKyHoc)
-                .HasForeignKey(h => h.MaLop);
-
-            modelBuilder.Entity<LopHoc>()
-                .HasOne(l => l.ChuongTrinhDaoTao).WithMany(c => c.LopHocs)
-                .HasForeignKey(l => l.MaChuongTrinhDaoTao);
+            modelBuilder.Entity<LichKiemTraDauVao>()
+                .HasOne(l => l.HoSoDangKyHoc)
+                .WithMany()
+                .HasForeignKey(l => l.MaHoSo);
 
             foreach (var fk in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
                 fk.DeleteBehavior = DeleteBehavior.Restrict;

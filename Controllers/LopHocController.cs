@@ -1,13 +1,13 @@
-﻿// Họ và tên: Phan Thị Hương Trà
+// Họ và tên: Phan Thị Hương Trà
 // Mã sinh viên: 23103100139
 // Nội dung thực hiện: Xây dựng Controller quản lý lớp học gồm CRUD, tìm kiếm, lọc, sắp xếp, phân trang và kiểm tra nghiệp vụ.
 // Sửa lỗi phân quyền và kiểm tra dữ liệu: Nguyễn Văn Giáp, 22103100110.
+// Truy vấn CSDL được tách sang ILopHocRepository.
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
@@ -16,11 +16,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 {
     public class LopHocController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ILopHocRepository _repo;
 
-        public LopHocController(AppDbContext context)
+        public LopHocController(ILopHocRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         public async Task<IActionResult> Index(
@@ -40,94 +40,21 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             const int pageSize = 5;
 
-            IQueryable<LopHoc> query = _context.LopHocs
-                .Include(x => x.ChuongTrinhDaoTao);
-
             if (!string.IsNullOrWhiteSpace(searchString))
             {
                 searchString = searchString.Trim();
-
-                query = query.Where(x =>
-                    x.TenLop.Contains(searchString) ||
-                    (x.ChuongTrinhDaoTao != null &&
-                     x.ChuongTrinhDaoTao.TenChuongTrinhDaoTao.Contains(searchString)));
             }
 
-            if (maChuongTrinhDaoTao.HasValue)
-            {
-                query = query.Where(x =>
-                    x.MaChuongTrinhDaoTao == maChuongTrinhDaoTao.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(trinhDoDauVao))
-            {
-                query = query.Where(x =>
-                    x.TrinhDoDauVao == trinhDoDauVao);
-            }
-
-            if (!string.IsNullOrWhiteSpace(trangThai))
-            {
-                query = query.Where(x =>
-                    x.TrangThai == trangThai);
-            }
-
-            if (diemDauVaoTu.HasValue)
-            {
-                query = query.Where(x =>
-                    x.DiemDauVao >= diemDauVaoTu.Value);
-            }
-
-            if (hanDangKyFilter == "con_han")
-            {
-                query = query.Where(x =>
-                    x.HanDangKy >= DateTime.Now);
-            }
-            else if (hanDangKyFilter == "het_han")
-            {
-                query = query.Where(x =>
-                    x.HanDangKy < DateTime.Now);
-            }
-
-            query = sortOrder switch
-            {
-                "name_desc" =>
-                    query.OrderByDescending(x => x.TenLop),
-
-                "program_asc" =>
-                    query.OrderBy(x =>
-                        x.ChuongTrinhDaoTao != null
-                            ? x.ChuongTrinhDaoTao.TenChuongTrinhDaoTao
-                            : ""),
-
-                "program_desc" =>
-                    query.OrderByDescending(x =>
-                        x.ChuongTrinhDaoTao != null
-                            ? x.ChuongTrinhDaoTao.TenChuongTrinhDaoTao
-                            : ""),
-
-                "size_asc" =>
-                    query.OrderBy(x => x.SiSoToiDa),
-
-                "size_desc" =>
-                    query.OrderByDescending(x => x.SiSoToiDa),
-
-                "score_asc" =>
-                    query.OrderBy(x => x.DiemDauVao),
-
-                "score_desc" =>
-                    query.OrderByDescending(x => x.DiemDauVao),
-
-                "date_asc" =>
-                    query.OrderBy(x => x.HanDangKy),
-
-                "date_desc" =>
-                    query.OrderByDescending(x => x.HanDangKy),
-
-                _ =>
-                    query.OrderBy(x => x.TenLop)
-            };
-
-            int totalItems = await query.CountAsync();
+            var (lopHocs, totalItems) = await _repo.TimKiemAsync(
+                searchString,
+                maChuongTrinhDaoTao,
+                trinhDoDauVao,
+                trangThai,
+                diemDauVaoTu,
+                hanDangKyFilter,
+                sortOrder,
+                page,
+                pageSize);
 
             int totalPages = totalItems == 0
                 ? 1
@@ -136,35 +63,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (page > totalPages)
             {
                 page = totalPages;
-            }
-
-            var lopHocs = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var maChuongTrinhTrongTrang = lopHocs
-                .Select(x => x.MaChuongTrinhDaoTao)
-                .Distinct()
-                .ToList();
-
-            var chuongTrinhDaoTaos =
-                await _context.ChuongTrinhDaoTaos
-                    .Where(x =>
-                        maChuongTrinhTrongTrang.Contains(
-                            x.MaChuongTrinhDaoTao))
-                    .ToDictionaryAsync(
-                        x => x.MaChuongTrinhDaoTao,
-                        x => x);
-
-            foreach (var lopHoc in lopHocs)
-            {
-                if (chuongTrinhDaoTaos.TryGetValue(
-                    lopHoc.MaChuongTrinhDaoTao,
-                    out var chuongTrinh))
-                {
-                    lopHoc.ChuongTrinhDaoTao = chuongTrinh;
-                }
             }
 
             var viewModel = new LopHocListViewModel
@@ -184,22 +82,14 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             ViewBag.ChuongTrinhDaoTaos =
                 new SelectList(
-                    await _context.ChuongTrinhDaoTaos
-                        .OrderBy(x => x.TenChuongTrinhDaoTao)
-                        .ToListAsync(),
+                    await _repo.LayChuongTrinhDaoTaoAsync(chiDangHoatDong: false),
                     "MaChuongTrinhDaoTao",
                     "TenChuongTrinhDaoTao",
                     maChuongTrinhDaoTao
                 );
 
             ViewBag.TrinhDoDauVaos =
-                await _context.LopHocs
-                    .Where(x =>
-                        !string.IsNullOrWhiteSpace(x.TrinhDoDauVao))
-                    .Select(x => x.TrinhDoDauVao)
-                    .Distinct()
-                    .OrderBy(x => x)
-                    .ToListAsync();
+                await _repo.LayDanhSachTrinhDoDauVaoAsync();
 
             ViewBag.TrangThais = new List<string>
             {
@@ -219,9 +109,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return NotFound();
             }
 
-            var lopHoc = await _context.LopHocs
-                .Include(x => x.ChuongTrinhDaoTao)
-                .FirstOrDefaultAsync(x => x.MaLop == id);
+            var lopHoc = await _repo.LayChiTietAsync(id.Value);
 
             if (lopHoc == null)
             {
@@ -257,9 +145,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return View(lopHoc);
             }
 
-            _context.LopHocs.Add(lopHoc);
+            _repo.Them(lopHoc);
 
-            await _context.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
 
             TempData["SuccessMessage"] =
                 "Thêm lớp học thành công!";
@@ -276,8 +164,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return NotFound();
             }
 
-            var lopHoc = await _context.LopHocs
-                .FirstOrDefaultAsync(x => x.MaLop == id);
+            var lopHoc = await _repo.TimTheoMaAsync(id.Value);
 
             if (lopHoc == null)
             {
@@ -302,11 +189,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return NotFound();
             }
 
-            var lopHocCu = await _context.LopHocs
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.MaLop == id);
-
-            if (lopHocCu == null)
+            if (!await _repo.TonTaiAsync(id))
             {
                 return NotFound();
             }
@@ -316,10 +199,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             await ValidateChuongTrinhDaoTao(lopHoc);
 
             int soHocVienDaXepLop =
-                await _context.HoSoDangKyHocs
-                    .CountAsync(x =>
-                        x.MaLop == id &&
-                        x.TrangThai == TrangThaiHoSo.DuocXepLop);
+                await _repo.DemSoHocVienDaXepLopAsync(id);
 
             if (lopHoc.SiSoToiDa < soHocVienDaXepLop)
             {
@@ -336,30 +216,15 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return View(lopHoc);
             }
 
-            try
+            if (!await _repo.CapNhatAsync(lopHoc))
             {
-                _context.Update(lopHoc);
-
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] =
-                    "Cập nhật lớp học thành công!";
-
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                bool exists =
-                    await _context.LopHocs
-                        .AnyAsync(x => x.MaLop == lopHoc.MaLop);
 
-                if (!exists)
-                {
-                    return NotFound();
-                }
+            TempData["SuccessMessage"] =
+                "Cập nhật lớp học thành công!";
 
-                throw;
-            }
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -371,9 +236,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return NotFound();
             }
 
-            var lopHoc = await _context.LopHocs
-                .Include(x => x.ChuongTrinhDaoTao)
-                .FirstOrDefaultAsync(x => x.MaLop == id);
+            var lopHoc = await _repo.LayChiTietAsync(id.Value);
 
             if (lopHoc == null)
             {
@@ -388,8 +251,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var lopHoc = await _context.LopHocs
-                .FirstOrDefaultAsync(x => x.MaLop == id);
+            var lopHoc = await _repo.TimTheoMaAsync(id);
 
             if (lopHoc == null)
             {
@@ -397,8 +259,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             }
 
             bool coHoSoDangKy =
-                await _context.HoSoDangKyHocs
-                    .AnyAsync(x => x.MaLop == id);
+                await _repo.CoHoSoDangKyAsync(id);
 
             if (coHoSoDangKy)
             {
@@ -408,9 +269,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.LopHocs.Remove(lopHoc);
+            _repo.Xoa(lopHoc);
 
-            await _context.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
 
             TempData["SuccessMessage"] =
                 "Xóa lớp học thành công!";
@@ -495,11 +356,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         private async Task ValidateChuongTrinhDaoTao(LopHoc lopHoc)
         {
             bool chuongTrinhTonTai =
-                await _context.ChuongTrinhDaoTaos
-                    .AnyAsync(x =>
-                        x.MaChuongTrinhDaoTao ==
-                        lopHoc.MaChuongTrinhDaoTao &&
-                        x.TrangThai);
+                await _repo.ChuongTrinhDangHoatDongAsync(
+                    lopHoc.MaChuongTrinhDaoTao);
 
             if (!chuongTrinhTonTai)
             {
@@ -513,10 +371,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             int? selectedId = null)
         {
             var chuongTrinhDaoTaos =
-                await _context.ChuongTrinhDaoTaos
-                    .Where(x => x.TrangThai)
-                    .OrderBy(x => x.TenChuongTrinhDaoTao)
-                    .ToListAsync();
+                await _repo.LayChuongTrinhDaoTaoAsync(chiDangHoatDong: true);
 
             ViewBag.ChuongTrinhDaoTaos =
                 new SelectList(

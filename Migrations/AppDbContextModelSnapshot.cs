@@ -243,6 +243,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.HasIndex("HoSoDangKyHocMaHoSo");
 
+                    b.HasIndex("MaHoSo");
+
                     b.ToTable("LichKiemTraDauVaos");
                 });
 
@@ -388,10 +390,16 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
             modelBuilder.Entity("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LichKiemTraDauVao", b =>
                 {
-                    b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc", "HoSoDangKyHoc")
+                    b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc", null)
                         .WithMany("LichKiemTraDauVaos")
                         .HasForeignKey("HoSoDangKyHocMaHoSo")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc", "HoSoDangKyHoc")
+                        .WithMany()
+                        .HasForeignKey("MaHoSo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("HoSoDangKyHoc");
                 });

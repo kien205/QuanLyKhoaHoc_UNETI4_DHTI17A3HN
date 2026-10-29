@@ -1,11 +1,11 @@
 // Họ và tên: Nguyễn Văn Giáp
 // Mã sinh viên: 22103100110
 // Nội dung thực hiện: Xem lớp, nộp, theo dõi và hủy hồ sơ đăng ký học.
+// Truy vấn CSDL được tách sang IDangKyHocRepository (và IHocVienRepository ở lớp cha).
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
@@ -23,8 +23,12 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             TrangThaiHoSo.DaKiemTraDauVao
         };
 
-        public DangKyHocController(AppDbContext db) : base(db)
+        private readonly IDangKyHocRepository _repo;
+
+        public DangKyHocController(IHocVienRepository hocVienRepo, IDangKyHocRepository repo)
+            : base(hocVienRepo)
         {
+            _repo = repo;
         }
 
         public async Task<IActionResult> LopDangMo()
@@ -34,22 +38,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return BaoThieuHoSoHocVien();
 
             var homNay = DateTime.Today;
-            var lopHocs = await Db.LopHocs
-                .AsNoTracking()
-                .Include(l => l.ChuongTrinhDaoTao)
-                .Where(l => l.TrangThai == TrangThaiLop.DangMoDangKy)
-                .OrderBy(l => l.HanDangKy)
-                .ThenBy(l => l.TenLop)
-                .ToListAsync();
+            var lopHocs = await _repo.LayLopDangMoDangKyAsync();
 
             var maLops = lopHocs.Select(l => l.MaLop).ToArray();
-            var lopDaDangKy = await Db.HoSoDangKyHocs
-                .AsNoTracking()
-                .Where(h => h.MaHocVien == hocVien.MaHocVien
-                    && maLops.Contains(h.MaLop)
-                    && TrangThaiHoSoDangXuLy.Contains(h.TrangThai))
-                .Select(h => h.MaLop)
-                .ToListAsync();
+            var lopDaDangKy = await _repo.LayMaLopCoHoSoDangXuLyAsync(
+                hocVien.MaHocVien, maLops, TrangThaiHoSoDangXuLy);
 
             var ds = lopHocs.Select(l => new LopHocDangKyViewModel
             {
@@ -86,25 +79,20 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return RedirectToAction(nameof(LopDangMo));
             }
 
-            var lopHopLe = await LopConNhanHoSoAsync(maLop);
+            var lopHopLe = await _repo.LopConNhanHoSoAsync(maLop, DateTime.Today);
             if (!lopHopLe)
             {
                 TempData["Loi"] = "Lớp không tồn tại, chưa mở đăng ký hoặc đã ngoài thời gian nhận hồ sơ.";
                 return RedirectToAction(nameof(LopDangMo));
             }
 
-            if (await CoHoSoDangXuLyAsync(hocVien.MaHocVien, maLop))
+            if (await _repo.CoHoSoDangXuLyAsync(hocVien.MaHocVien, maLop, TrangThaiHoSoDangXuLy))
             {
                 TempData["Loi"] = "Bạn đã có hồ sơ đang xử lý cho lớp này.";
                 return RedirectToAction(nameof(LopDangMo));
             }
 
-            var lop = await Db.LopHocs
-                .AsNoTracking()
-                .Include(l => l.ChuongTrinhDaoTao)
-                .SingleAsync(l => l.MaLop == maLop);
-            ViewBag.TenLop = lop.TenLop;
-            ViewBag.TenChuongTrinh = lop.ChuongTrinhDaoTao?.TenChuongTrinhDaoTao;
+            await NapThongTinLopAsync(maLop);
             return View(new NopHoSoDangKyViewModel());
         }
 
@@ -134,19 +122,19 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 return RedirectToAction(nameof(LopDangMo));
             }
 
-            if (!await LopConNhanHoSoAsync(maLop))
+            if (!await _repo.LopConNhanHoSoAsync(maLop, DateTime.Today))
             {
                 TempData["Loi"] = "Lớp không tồn tại, chưa mở đăng ký hoặc đã ngoài thời gian nhận hồ sơ.";
                 return RedirectToAction(nameof(LopDangMo));
             }
 
-            if (await CoHoSoDangXuLyAsync(hocVien.MaHocVien, maLop))
+            if (await _repo.CoHoSoDangXuLyAsync(hocVien.MaHocVien, maLop, TrangThaiHoSoDangXuLy))
             {
                 TempData["Loi"] = "Bạn đã có hồ sơ đang xử lý cho lớp này.";
                 return RedirectToAction(nameof(HoSoCuaToi));
             }
 
-            Db.HoSoDangKyHocs.Add(new HoSoDangKyHoc
+            _repo.ThemHoSo(new HoSoDangKyHoc
             {
                 MaHocVien = hocVien.MaHocVien,
                 MaLop = maLop,
@@ -155,7 +143,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 TrangThai = TrangThaiHoSo.ChoDuyet
             });
 
-            await Db.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
             TempData["ThanhCong"] = "Đã nộp hồ sơ đăng ký học.";
             return RedirectToAction(nameof(HoSoCuaToi));
         }
@@ -166,15 +154,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (hocVien == null)
                 return BaoThieuHoSoHocVien();
 
-            var hoSos = await Db.HoSoDangKyHocs
-                .AsNoTracking()
-                .Where(h => h.MaHocVien == hocVien.MaHocVien)
-                .Include(h => h.LopHoc)
-                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
-                .Include(h => h.LichKiemTraDauVaos)
-                .Include(h => h.KetQuaXepLop)
-                .OrderByDescending(h => h.NgayNop)
-                .ToListAsync();
+            var hoSos = await _repo.LayHoSoCuaHocVienAsync(hocVien.MaHocVien);
 
             var ds = hoSos.Select(h => new HoSoHocVienViewModel
             {
@@ -209,10 +189,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             if (hocVien == null)
                 return BaoThieuHoSoHocVien();
 
-            var hoSo = await Db.HoSoDangKyHocs
-                .Include(h => h.LichKiemTraDauVaos)
-                .Include(h => h.KetQuaXepLop)
-                .SingleOrDefaultAsync(h => h.MaHoSo == maHoSo && h.MaHocVien == hocVien.MaHocVien);
+            var hoSo = await _repo.LayHoSoCuaHocVienDeHuyAsync(maHoSo, hocVien.MaHocVien);
 
             if (hoSo == null)
                 return NotFound();
@@ -224,26 +201,10 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             }
 
             hoSo.TrangThai = TrangThaiHoSo.DaHuy;
-            await Db.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
             TempData["ThanhCong"] = "Đã hủy hồ sơ đăng ký học.";
             return RedirectToAction(nameof(HoSoCuaToi));
         }
-
-        private Task<bool> LopConNhanHoSoAsync(int maLop)
-        {
-            var homNay = DateTime.Today;
-            return Db.LopHocs.AnyAsync(l =>
-                l.MaLop == maLop
-                && l.TrangThai == TrangThaiLop.DangMoDangKy
-                && l.NgayBatDauDangKy < homNay.AddDays(1)
-                && l.HanDangKy >= homNay);
-        }
-
-        private Task<bool> CoHoSoDangXuLyAsync(int maHocVien, int maLop) =>
-            Db.HoSoDangKyHocs.AnyAsync(h =>
-                h.MaHocVien == maHocVien
-                && h.MaLop == maLop
-                && TrangThaiHoSoDangXuLy.Contains(h.TrangThai));
 
         private static bool HoSoCaNhanDayDu(HocVien hocVien) =>
             !string.IsNullOrWhiteSpace(hocVien.HoTen)
@@ -261,10 +222,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
         private async Task NapThongTinLopAsync(int maLop)
         {
-            var lop = await Db.LopHocs
-                .AsNoTracking()
-                .Include(l => l.ChuongTrinhDaoTao)
-                .SingleOrDefaultAsync(l => l.MaLop == maLop);
+            var lop = await _repo.LayLopKemChuongTrinhAsync(maLop);
             ViewBag.TenLop = lop?.TenLop ?? string.Empty;
             ViewBag.TenChuongTrinh = lop?.ChuongTrinhDaoTao?.TenChuongTrinhDaoTao ?? string.Empty;
         }
