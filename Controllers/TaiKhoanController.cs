@@ -1,12 +1,12 @@
-﻿// Họ và tên: Hà Trung Kiên
+// Họ và tên: Hà Trung Kiên
 // Mã sinh viên: 23103100058
 // Nội dung thực hiện: Đăng nhập, đăng xuất, Session và quản lý tài khoản (Admin).
 // Tự tạo/liên kết hồ sơ học viên khi phân vai trò: Nguyễn Văn Giáp, 22103100110.
+// Truy vấn CSDL được tách sang ITaiKhoanRepository.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
@@ -15,8 +15,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 {
     public class TaiKhoanController : Controller
     {
-        private readonly AppDbContext _db;
-        public TaiKhoanController(AppDbContext db) => _db = db;
+        private readonly ITaiKhoanRepository _repo;
+        public TaiKhoanController(ITaiKhoanRepository repo) => _repo = repo;
 
         private static readonly string[] DanhSachVaiTro =
             { VaiTroTaiKhoan.Admin, VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.HocVien };
@@ -35,7 +35,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var tk = _db.TaiKhoans.FirstOrDefault(t => t.TenDangNhap == model.TenDangNhap);
+            var tk = _repo.LayTheoTenDangNhap(model.TenDangNhap);
             if (tk == null) { ModelState.AddModelError("", "Tài khoản không tồn tại."); return View(model); }
             if (tk.MatKhau != model.MatKhau) { ModelState.AddModelError("", "Sai mật khẩu."); return View(model); }
             if (!tk.TrangThai) { ModelState.AddModelError("", "Tài khoản đã bị khóa."); return View(model); }
@@ -61,21 +61,12 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [PhanQuyen(VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> Index(string? tuKhoa, string? vaiTro)
         {
-            var q = _db.TaiKhoans.AsQueryable();
-
             if (!string.IsNullOrWhiteSpace(tuKhoa))
-            {
                 tuKhoa = tuKhoa.Trim();
-                q = q.Where(t => t.TenDangNhap.Contains(tuKhoa)
-                              || t.HoTen.Contains(tuKhoa)
-                              || t.Email.Contains(tuKhoa));
-            }
-            if (!string.IsNullOrWhiteSpace(vaiTro))
-                q = q.Where(t => t.VaiTro == vaiTro);
 
             ViewBag.TuKhoa = tuKhoa;
             ViewBag.VaiTro = vaiTro;
-            return View(await q.OrderBy(t => t.TenDangNhap).ToListAsync());
+            return View(await _repo.TimKiemAsync(tuKhoa, vaiTro));
         }
 
         [PhanQuyen(VaiTroTaiKhoan.Admin)]
@@ -99,7 +90,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 model.NgaySinhHocVien,
                 model.GioiTinhHocVien);
 
-            if (await _db.TaiKhoans.AnyAsync(t => t.TenDangNhap == model.TenDangNhap))
+            if (await _repo.TenDangNhapTonTaiAsync(model.TenDangNhap))
                 ModelState.AddModelError(nameof(model.TenDangNhap), "Tên đăng nhập đã tồn tại.");
 
             if (!ModelState.IsValid)
@@ -130,8 +121,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 };
             }
 
-            _db.TaiKhoans.Add(taiKhoan);
-            await _db.SaveChangesAsync();
+            _repo.Them(taiKhoan);
+            await _repo.LuuThayDoiAsync();
 
             TempData["ThanhCong"] = "Đã thêm tài khoản.";
             return RedirectToAction(nameof(Index));
@@ -141,13 +132,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var tk = await _db.TaiKhoans.FindAsync(id);
+            var tk = await _repo.TimTheoMaAsync(id.Value);
             if (tk == null) return NotFound();
 
             NapVaiTro();
-            var hocVien = await _db.HocViens
-                .AsNoTracking()
-                .SingleOrDefaultAsync(h => h.MaTaiKhoan == tk.MaTaiKhoan);
+            var hocVien = await _repo.LayHocVienTheoTaiKhoanAsync(tk.MaTaiKhoan);
             return View(new TaiKhoanEditViewModel
             {
                 MaTaiKhoan = tk.MaTaiKhoan,
@@ -165,11 +154,10 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         public async Task<IActionResult> Edit(int id, TaiKhoanEditViewModel model)
         {
             if (id != model.MaTaiKhoan) return NotFound();
-            var tk = await _db.TaiKhoans.FindAsync(id);
+            var tk = await _repo.TimTheoMaAsync(id);
             if (tk == null) return NotFound();
 
-            var hocVien = await _db.HocViens
-                .SingleOrDefaultAsync(h => h.MaTaiKhoan == tk.MaTaiKhoan);
+            var hocVien = await _repo.LayHocVienTheoTaiKhoanAsync(tk.MaTaiKhoan, theoDoiThayDoi: true);
             var maHienTai = HttpContext.Session.GetInt32(SessionKeys.MaTaiKhoan);
 
             if (!DanhSachVaiTro.Contains(model.VaiTro))
@@ -207,14 +195,14 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                         Email = tk.Email,
                         TrangThai = true
                     };
-                    _db.HocViens.Add(hocVien);
+                    _repo.ThemHocVien(hocVien);
                 }
 
                 hocVien.NgaySinh = model.NgaySinhHocVien!.Value.Date;
                 hocVien.GioiTinh = model.GioiTinhHocVien!;
             }
 
-            await _db.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
 
             if (tk.MaTaiKhoan == maHienTai)
                 HttpContext.Session.SetString(SessionKeys.HoTen, tk.HoTen);   
@@ -227,7 +215,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [PhanQuyen(VaiTroTaiKhoan.Admin)]
         public async Task<IActionResult> DoiTrangThai(int id)
         {
-            var tk = await _db.TaiKhoans.FindAsync(id);
+            var tk = await _repo.TimTheoMaAsync(id);
             if (tk == null) return NotFound();
 
             if (tk.MaTaiKhoan == HttpContext.Session.GetInt32(SessionKeys.MaTaiKhoan))
@@ -237,7 +225,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             }
 
             tk.TrangThai = !tk.TrangThai;
-            await _db.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
 
             TempData["ThanhCong"] = tk.TrangThai ? "Đã mở khóa tài khoản." : "Đã khóa tài khoản.";
             return RedirectToAction(nameof(Index));

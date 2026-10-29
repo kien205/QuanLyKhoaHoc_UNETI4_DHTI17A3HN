@@ -2,10 +2,10 @@
 // Mã sinh viên: 23103100058
 // Nội dung thực hiện: Tạo Entity, Database,Đăng nhập/Đăng xuất ,Session, Atribute phân quyền.
 // Nạp các lớp liên quan cho trang chi tiết chương trình: Nguyễn Văn Giáp, 22103100110.
+// Truy vấn CSDL được tách sang IChuongTrinhDaoTaoRepository.
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
 
@@ -14,21 +14,17 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
     [PhanQuyen(VaiTroTaiKhoan.Admin)]
     public class ChuongTrinhDaoTaoController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IChuongTrinhDaoTaoRepository _repo;
 
-        public ChuongTrinhDaoTaoController(AppDbContext context)
+        public ChuongTrinhDaoTaoController(IChuongTrinhDaoTaoRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         // GET: ChuongTrinhDaoTao
         public async Task<IActionResult> Index()
         {
-            var ds = await _context.ChuongTrinhDaoTaos
-                    .Include(c => c.LopHocs)
-                    .OrderBy(c => c.TenChuongTrinhDaoTao)
-                    .ToListAsync();
-
+            var ds = await _repo.LayTatCaKemLopHocAsync();
             return View(ds);
         }
 
@@ -37,9 +33,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         {
             if (id == null) return NotFound();
 
-            var ctdt = await _context.ChuongTrinhDaoTaos
-                .Include(c => c.LopHocs)
-                .FirstOrDefaultAsync(m => m.MaChuongTrinhDaoTao == id);
+            var ctdt = await _repo.LayChiTietKemLopHocAsync(id.Value);
             if (ctdt == null) return NotFound();
 
             return View(ctdt);
@@ -59,8 +53,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         {
             ctdt.TenChuongTrinhDaoTao = ctdt.TenChuongTrinhDaoTao?.Trim() ?? string.Empty;
 
-            if (await _context.ChuongTrinhDaoTaos
-                    .AnyAsync(c => c.TenChuongTrinhDaoTao == ctdt.TenChuongTrinhDaoTao))
+            if (await _repo.TrungTenAsync(ctdt.TenChuongTrinhDaoTao))
             {
                 ModelState.AddModelError(nameof(ctdt.TenChuongTrinhDaoTao),
                     "Tên chương trình đào tạo đã tồn tại.");
@@ -68,8 +61,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             if (ModelState.IsValid)
             {
-                _context.Add(ctdt);
-                await _context.SaveChangesAsync();
+                _repo.Them(ctdt);
+                await _repo.LuuThayDoiAsync();
                 TempData["ThanhCong"] = "Đã thêm chương trình đào tạo.";
                 return RedirectToAction(nameof(Index));
             }
@@ -81,7 +74,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         {
             if (id == null) return NotFound();
 
-            var ctdt = await _context.ChuongTrinhDaoTaos.FindAsync(id);
+            var ctdt = await _repo.TimTheoMaAsync(id.Value);
             if (ctdt == null) return NotFound();
 
             return View(ctdt);
@@ -97,9 +90,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             ctdt.TenChuongTrinhDaoTao = ctdt.TenChuongTrinhDaoTao?.Trim() ?? string.Empty;
 
-            if (await _context.ChuongTrinhDaoTaos.AnyAsync(c =>
-                    c.TenChuongTrinhDaoTao == ctdt.TenChuongTrinhDaoTao &&
-                    c.MaChuongTrinhDaoTao != ctdt.MaChuongTrinhDaoTao))
+            if (await _repo.TrungTenAsync(ctdt.TenChuongTrinhDaoTao, boQuaMa: ctdt.MaChuongTrinhDaoTao))
             {
                 ModelState.AddModelError(nameof(ctdt.TenChuongTrinhDaoTao),
                     "Tên chương trình đào tạo đã tồn tại.");
@@ -107,33 +98,25 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(ctdt);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await _context.ChuongTrinhDaoTaos.AnyAsync(e => e.MaChuongTrinhDaoTao == id))
-                        return NotFound();
-                    throw;
-                }
+                if (!await _repo.CapNhatAsync(ctdt))
+                    return NotFound();
+
                 TempData["ThanhCong"] = "Đã cập nhật chương trình đào tạo.";
                 return RedirectToAction(nameof(Index));
             }
             return View(ctdt);
         }
 
-        // POST: ChuongTrinhDaoTao/DoiTrangThai/{id} 
+        // POST: ChuongTrinhDaoTao/DoiTrangThai/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DoiTrangThai(int id)
         {
-            var ctdt = await _context.ChuongTrinhDaoTaos.FindAsync(id);
+            var ctdt = await _repo.TimTheoMaAsync(id);
             if (ctdt == null) return NotFound();
 
             ctdt.TrangThai = !ctdt.TrangThai;
-            await _context.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
 
             TempData["ThanhCong"] = ctdt.TrangThai
                 ? "Đã bật hoạt động cho chương trình đào tạo."
@@ -146,9 +129,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         {
             if (id == null) return NotFound();
 
-            var ctdt = await _context.ChuongTrinhDaoTaos
-                .Include(c => c.LopHocs)
-                .FirstOrDefaultAsync(m => m.MaChuongTrinhDaoTao == id);
+            var ctdt = await _repo.LayChiTietKemLopHocAsync(id.Value);
             if (ctdt == null) return NotFound();
 
             return View(ctdt);
@@ -159,17 +140,17 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ctdt = await _context.ChuongTrinhDaoTaos.FindAsync(id);
+            var ctdt = await _repo.TimTheoMaAsync(id);
             if (ctdt == null) return NotFound();
 
-            if (await _context.LopHocs.AnyAsync(l => l.MaChuongTrinhDaoTao == id))
+            if (await _repo.CoLopHocAsync(id))
             {
                 TempData["Loi"] = "Không thể xóa: chương trình đào tạo đang có lớp học liên quan.";
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.ChuongTrinhDaoTaos.Remove(ctdt);
-            await _context.SaveChangesAsync();
+            _repo.Xoa(ctdt);
+            await _repo.LuuThayDoiAsync();
             TempData["ThanhCong"] = "Đã xóa chương trình đào tạo.";
             return RedirectToAction(nameof(Index));
         }

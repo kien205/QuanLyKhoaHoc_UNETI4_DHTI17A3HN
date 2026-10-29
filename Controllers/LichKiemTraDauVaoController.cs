@@ -1,13 +1,13 @@
-﻿// Họ và tên: Lê Đức Long
+// Họ và tên: Lê Đức Long
 // Mã sinh viên: 23103100015
 // Nội dung thực hiện: Lịch kiểm tra đầu vào: lập lịch, kiểm tra trùng lịch,
 // hủy lịch, hoàn thành lịch.
+// Truy vấn CSDL được tách sang ILichKiemTraDauVaoRepository.
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
@@ -17,21 +17,17 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
     [PhanQuyen(VaiTroTaiKhoan.Admin, VaiTroTaiKhoan.NhanVienDaoTao)]
     public class LichKiemTraDauVaoController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ILichKiemTraDauVaoRepository _repo;
 
-        public LichKiemTraDauVaoController(AppDbContext context)
+        public LichKiemTraDauVaoController(ILichKiemTraDauVaoRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         // GET: LichKiemTraDauVao
         public async Task<IActionResult> Index()
         {
-            var ds = await _context.LichKiemTraDauVaos
-                .Include(l => l.HoSoDangKyHoc!).ThenInclude(h => h.HocVien)
-                .Include(l => l.HoSoDangKyHoc!).ThenInclude(h => h.LopHoc)
-                .OrderByDescending(l => l.ThoiGianBatDau)
-                .ToListAsync();
+            var ds = await _repo.LayTatCaAsync();
             return View(ds);
         }
 
@@ -55,8 +51,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 var batDau = vm.ThoiGianBatDau!.Value;
                 var ketThuc = vm.ThoiGianKetThuc!.Value;
 
-                var hoSo = await _context.HoSoDangKyHocs
-                    .FirstOrDefaultAsync(h => h.MaHoSo == vm.MaHoSo);
+                var hoSo = await _repo.LayHoSoAsync(vm.MaHoSo);
                 if (hoSo == null)
                 {
                     ModelState.AddModelError(nameof(vm.MaHoSo), "Hồ sơ không tồn tại.");
@@ -67,14 +62,14 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                         "Chỉ hồ sơ ở trạng thái \"Đủ điều kiện\" mới được lập lịch kiểm tra đầu vào.");
                 }
 
-      
+
                 if (ketThuc <= batDau)
                 {
                     ModelState.AddModelError(nameof(vm.ThoiGianKetThuc),
                         "Thời gian kết thúc phải sau thời gian bắt đầu.");
                 }
 
-           
+
                 if (batDau < DateTime.Now)
                 {
                     ModelState.AddModelError(nameof(vm.ThoiGianBatDau),
@@ -83,31 +78,21 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
                 if (hoSo != null && ketThuc > batDau)
                 {
-                    bool daCoLich = await _context.LichKiemTraDauVaos.AnyAsync(l =>
-                        l.MaHoSo == hoSo.MaHoSo &&
-                        l.TrangThai != TrangThaiLich.DaHuy);
+                    bool daCoLich = await _repo.HoSoCoLichHieuLucAsync(hoSo.MaHoSo);
                     if (daCoLich)
                     {
                         ModelState.AddModelError(nameof(vm.MaHoSo),
                             "Hồ sơ này đã có lịch kiểm tra đầu vào còn hiệu lực.");
                     }
 
-                    bool trungHocVien = await _context.LichKiemTraDauVaos.AnyAsync(l =>
-                        l.TrangThai != TrangThaiLich.DaHuy &&
-                        l.HoSoDangKyHoc!.MaHocVien == hoSo.MaHocVien &&
-                        l.ThoiGianBatDau < ketThuc &&
-                        l.ThoiGianKetThuc > batDau);
+                    bool trungHocVien = await _repo.TrungLichHocVienAsync(hoSo.MaHocVien, batDau, ketThuc);
                     if (trungHocVien)
                     {
                         ModelState.AddModelError(nameof(vm.ThoiGianBatDau),
                             "Học viên đã có lịch kiểm tra đầu vào khác trùng khoảng thời gian này.");
                     }
 
-                    bool trungGiaoVien = await _context.LichKiemTraDauVaos.AnyAsync(l =>
-                        l.TrangThai != TrangThaiLich.DaHuy &&
-                        l.GiaoVienKiemTra == vm.GiaoVienKiemTra &&
-                        l.ThoiGianBatDau < ketThuc &&
-                        l.ThoiGianKetThuc > batDau);
+                    bool trungGiaoVien = await _repo.TrungLichGiaoVienAsync(vm.GiaoVienKiemTra, batDau, ketThuc);
                     if (trungGiaoVien)
                     {
                         ModelState.AddModelError(nameof(vm.GiaoVienKiemTra),
@@ -128,9 +113,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                         GhiChu = vm.GhiChu?.Trim(),
                         TrangThai = TrangThaiLich.DaLenLich
                     };
-                    _context.LichKiemTraDauVaos.Add(lich);
+                    _repo.Them(lich);
                     hoSo.TrangThai = TrangThaiHoSo.ChoKiemTraDauVao;
-                    await _context.SaveChangesAsync();
+                    await _repo.LuuThayDoiAsync();
 
                     TempData["ThanhCong"] = "Đã lập lịch kiểm tra đầu vào.";
                     return RedirectToAction(nameof(Index));
@@ -146,9 +131,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Huy(int id)
         {
-            var lich = await _context.LichKiemTraDauVaos
-                .Include(l => l.HoSoDangKyHoc)
-                .FirstOrDefaultAsync(l => l.MaLichKiemTraDauVao == id);
+            var lich = await _repo.LayLichKemHoSoAsync(id);
             if (lich == null) return NotFound();
 
             if (lich.TrangThai != TrangThaiLich.DaLenLich)
@@ -164,7 +147,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 lich.HoSoDangKyHoc.TrangThai = TrangThaiHoSo.DuDieuKien;
             }
 
-            await _context.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
             TempData["ThanhCong"] = "Đã hủy lịch kiểm tra đầu vào.";
             return RedirectToAction(nameof(Index));
         }
@@ -174,9 +157,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> HoanThanh(int id)
         {
-            var lich = await _context.LichKiemTraDauVaos
-                .Include(l => l.HoSoDangKyHoc)
-                .FirstOrDefaultAsync(l => l.MaLichKiemTraDauVao == id);
+            var lich = await _repo.LayLichKemHoSoAsync(id);
             if (lich == null) return NotFound();
 
             if (lich.TrangThai != TrangThaiLich.DaLenLich)
@@ -195,24 +176,22 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             lich.TrangThai = TrangThaiLich.DaHoanThanh;
             hoSo.TrangThai = TrangThaiHoSo.DaKiemTraDauVao;
 
-            await _context.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
             TempData["ThanhCong"] = "Đã hoàn thành lịch. Hồ sơ chuyển sang \"Đã kiểm tra đầu vào\".";
             return RedirectToAction(nameof(Index));
         }
 
         private async Task NapDanhSachHoSo(LapLichViewModel vm)
         {
-            vm.DanhSachHoSo = await _context.HoSoDangKyHocs
-                .Where(h => h.TrangThai == TrangThaiHoSo.DuDieuKien &&
-                            !h.LichKiemTraDauVaos.Any(l => l.TrangThai != TrangThaiLich.DaHuy))
-                .OrderBy(h => h.HocVien!.HoTen)
+            var hoSos = await _repo.LayHoSoChoLapLichAsync();
+            vm.DanhSachHoSo = hoSos
                 .Select(h => new SelectListItem
                 {
                     Value = h.MaHoSo.ToString(),
-                    Text = h.HocVien!.HoTen + " - " + h.LopHoc!.TenLop + " (HS" + h.MaHoSo + ")",
+                    Text = h.HocVien?.HoTen + " - " + h.LopHoc?.TenLop + " (HS" + h.MaHoSo + ")",
                     Selected = h.MaHoSo == vm.MaHoSo
                 })
-                .ToListAsync();
+                .ToList();
         }
     }
 }

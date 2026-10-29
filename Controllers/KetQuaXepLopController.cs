@@ -1,13 +1,13 @@
-﻿// Họ và tên: Lê Đức Long
+// Họ và tên: Lê Đức Long
 // Mã sinh viên: 23103100015
 // Nội dung thực hiện: Kết quả xếp lớp: nhập kết quả, cập nhật đồng bộ
 // trạng thái hồ sơ, kiểm tra sĩ số tối đa của lớp.
+// Truy vấn CSDL được tách sang IKetQuaXepLopRepository.
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
@@ -17,21 +17,17 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
     [PhanQuyen(VaiTroTaiKhoan.Admin, VaiTroTaiKhoan.NhanVienDaoTao)]
     public class KetQuaXepLopController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IKetQuaXepLopRepository _repo;
 
-        public KetQuaXepLopController(AppDbContext context)
+        public KetQuaXepLopController(IKetQuaXepLopRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         // GET: KetQuaXepLop
         public async Task<IActionResult> Index()
         {
-            var ds = await _context.KetQuaXepLops   
-                .Include(k => k.HoSoDangKyHoc!).ThenInclude(h => h.HocVien)
-                .Include(k => k.HoSoDangKyHoc!).ThenInclude(h => h.LopHoc)
-                .OrderByDescending(k => k.NgayCapNhat)
-                .ToListAsync();
+            var ds = await _repo.LayTatCaAsync();
             return View(ds);
         }
 
@@ -56,9 +52,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
             if (ModelState.IsValid)
             {
-                var hoSo = await _context.HoSoDangKyHocs
-                    .Include(h => h.LopHoc)
-                    .FirstOrDefaultAsync(h => h.MaHoSo == vm.MaHoSo);
+                var hoSo = await _repo.LayHoSoKemLopAsync(vm.MaHoSo);
 
                 if (hoSo == null)
                 {
@@ -72,7 +66,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                             "Chỉ hồ sơ ở trạng thái \"Đã kiểm tra đầu vào\" mới được nhập kết quả.");
                     }
 
-                    if (await _context.KetQuaXepLops.AnyAsync(k => k.MaHoSo == hoSo.MaHoSo))
+                    if (await _repo.HoSoDaCoKetQuaAsync(hoSo.MaHoSo))
                     {
                         ModelState.AddModelError(nameof(vm.MaHoSo),
                             "Hồ sơ này đã có kết quả xếp lớp.");
@@ -80,9 +74,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
                     if (vm.KetQua == TrangThaiHoSo.DuocXepLop && hoSo.LopHoc != null)
                     {
-                        int daXep = await _context.HoSoDangKyHocs.CountAsync(h =>
-                            h.MaLop == hoSo.MaLop &&
-                            h.TrangThai == TrangThaiHoSo.DuocXepLop);
+                        int daXep = await _repo.DemSoDaXepLopAsync(hoSo.MaLop);
 
                         if (daXep >= hoSo.LopHoc.SiSoToiDa)
                         {
@@ -94,7 +86,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    _context.KetQuaXepLops.Add(new KetQuaXepLop
+                    _repo.Them(new KetQuaXepLop
                     {
                         MaHoSo = hoSo!.MaHoSo,
                         DiemDanhGia = vm.DiemDanhGia,
@@ -105,15 +97,13 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
                     hoSo.TrangThai = vm.KetQua;
 
-                    await _context.SaveChangesAsync();
+                    await _repo.LuuThayDoiAsync();
 
                     string thongBao = "Đã ghi nhận kết quả xếp lớp.";
 
                     if (vm.KetQua == TrangThaiHoSo.DuocXepLop && hoSo.LopHoc != null)
                     {
-                        int daXepSau = await _context.HoSoDangKyHocs.CountAsync(h =>
-                            h.MaLop == hoSo.MaLop &&
-                            h.TrangThai == TrangThaiHoSo.DuocXepLop);
+                        int daXepSau = await _repo.DemSoDaXepLopAsync(hoSo.MaLop);
                         if (daXepSau >= hoSo.LopHoc.SiSoToiDa)
                             thongBao += $" Cảnh báo: lớp \"{hoSo.LopHoc.TenLop}\" đã đạt sĩ số tối đa, có thể đóng lớp.";
                     }
@@ -129,17 +119,15 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 
         private async Task NapDanhSachHoSo(NhapKetQuaViewModel vm)
         {
-            vm.DanhSachHoSo = await _context.HoSoDangKyHocs
-                .Where(h => h.TrangThai == TrangThaiHoSo.DaKiemTraDauVao &&
-                            h.KetQuaXepLop == null)
-                .OrderBy(h => h.HocVien!.HoTen)
+            var hoSos = await _repo.LayHoSoChoNhapKetQuaAsync();
+            vm.DanhSachHoSo = hoSos
                 .Select(h => new SelectListItem
                 {
                     Value = h.MaHoSo.ToString(),
-                    Text = h.HocVien!.HoTen + " - " + h.LopHoc!.TenLop + " (HS" + h.MaHoSo + ")",
+                    Text = h.HocVien?.HoTen + " - " + h.LopHoc?.TenLop + " (HS" + h.MaHoSo + ")",
                     Selected = h.MaHoSo == vm.MaHoSo
                 })
-                .ToListAsync();
+                .ToList();
         }
     }
 }

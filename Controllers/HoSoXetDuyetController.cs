@@ -1,28 +1,25 @@
-﻿// Họ và tên: Tạ Thị Bích Loan 
+// Họ và tên: Tạ Thị Bích Loan
 // Mã sinh viên: 23103100147
 // Nội dung thực hiện: Module 4 - Tiếp nhận hồ sơ, Xét duyệt, Quản lý luồng trạng thái, Kiểm soát sĩ số tối đa
 // Sửa lỗi xác thực kết quả xét duyệt: Nguyễn Văn Giáp, 22103100110.
+// Truy vấn CSDL được tách sang IHoSoXetDuyetRepository.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
-using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models;
+using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Repositories.Interfaces;
 using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.ViewModels;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Filter.PhanQuyen;
 using static QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HangSo;
 
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
 {
-  
-
     [PhanQuyen(VaiTroTaiKhoan.NhanVienDaoTao, VaiTroTaiKhoan.Admin)]
     public class HoSoXetDuyetController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IHoSoXetDuyetRepository _repo;
 
-        public HoSoXetDuyetController(AppDbContext context)
+        public HoSoXetDuyetController(IHoSoXetDuyetRepository repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
         public async Task<IActionResult> Index(
@@ -37,66 +34,13 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             int pageSize = 10;
             if (trang < 1) trang = 1;
 
-           
-            var query = _context.HoSoDangKyHocs
-                .Include(h => h.HocVien)
-                .Include(h => h.LopHoc)
-                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
-                .AsQueryable();
+            var (danhSach, tongBanGhi) = await _repo.TimKiemAsync(
+                tuKhoa, maChuongTrinh, trangThai, tuNgay, denNgay, sapXep, trang, pageSize);
 
-           
-            if (!string.IsNullOrWhiteSpace(tuKhoa))
-            {
-                string tk = tuKhoa.Trim().ToLower();
-                query = query.Where(h => (h.HocVien != null && h.HocVien.HoTen.ToLower().Contains(tk)) ||
-                                         (h.HocVien != null && h.HocVien.Email != null &&
-                                          h.HocVien.Email.ToLower().Contains(tk)) ||
-                                         (h.LopHoc != null && h.LopHoc.TenLop.ToLower().Contains(tk)));
-            }
-
-           
-            if (maChuongTrinh.HasValue)
-            {
-                query = query.Where(h => h.LopHoc != null && h.LopHoc.MaChuongTrinhDaoTao == maChuongTrinh.Value);
-            }
-
-        
-            if (!string.IsNullOrWhiteSpace(trangThai))
-            {
-                query = query.Where(h => h.TrangThai == trangThai);
-            }
-
-            
-            if (tuNgay.HasValue)
-            {
-                query = query.Where(h => h.NgayNop >= tuNgay.Value.Date);
-            }
-            if (denNgay.HasValue)
-            {
-                DateTime denNgayCuoiNgay = denNgay.Value.Date.AddDays(1).AddTicks(-1);
-                query = query.Where(h => h.NgayNop <= denNgayCuoiNgay);
-            }
-
-         
-            query = sapXep switch
-            {
-                "ngay_tang" => query.OrderBy(h => h.NgayNop),
-                "ten_az" => query.OrderBy(h => h.HocVien != null ? h.HocVien.HoTen : string.Empty),
-                "ten_za" => query.OrderByDescending(h => h.HocVien != null ? h.HocVien.HoTen : string.Empty),
-                _ => query.OrderByDescending(h => h.NgayNop)
-            };
-
-            int tongBanGhi = await query.CountAsync();
             int tongSoTrang = (int)Math.Ceiling(tongBanGhi / (double)pageSize);
             if (tongSoTrang > 0 && trang > tongSoTrang) trang = tongSoTrang;
 
-            var danhSach = await query
-                .Skip((trang - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            
-            var chuongTrinhs = await _context.ChuongTrinhDaoTaos.OrderBy(c => c.TenChuongTrinhDaoTao).ToListAsync();
+            var chuongTrinhs = await _repo.LayDanhSachChuongTrinhAsync();
             ViewBag.ChuongTrinhList = new SelectList(chuongTrinhs, "MaChuongTrinhDaoTao", "TenChuongTrinhDaoTao", maChuongTrinh);
 
             var viewModel = new DanhSachHoSoViewModel
@@ -116,14 +60,10 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return View(viewModel);
         }
 
-      
+
         public async Task<IActionResult> ChiTiet(int id)
         {
-            var hoSo = await _context.HoSoDangKyHocs
-                .Include(h => h.HocVien)
-                .Include(h => h.LopHoc)
-                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
-                .FirstOrDefaultAsync(h => h.MaHoSo == id);
+            var hoSo = await _repo.LayChiTietHoSoAsync(id);
 
             if (hoSo == null)
             {
@@ -136,8 +76,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             int siSoToiDa = hoSo.LopHoc?.SiSoToiDa ?? 0;
             if (hoSo.MaLop > 0)
             {
-                daXepLop = await _context.HoSoDangKyHocs
-                    .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == TrangThaiHoSo.DuocXepLop);
+                daXepLop = await _repo.DemSoDaXepLopAsync(hoSo.MaLop);
             }
 
             ViewBag.SoLuongDaXepLop = daXepLop;
@@ -147,15 +86,11 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             return View(hoSo);
         }
 
-     
+
         [HttpGet]
         public async Task<IActionResult> XetDuyet(int id)
         {
-            var hoSo = await _context.HoSoDangKyHocs
-                .Include(h => h.HocVien)
-                .Include(h => h.LopHoc)
-                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
-                .FirstOrDefaultAsync(h => h.MaHoSo == id);
+            var hoSo = await _repo.LayChiTietHoSoAsync(id);
 
             if (hoSo == null)
             {
@@ -185,8 +120,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
             int siSoToiDa = hoSo.LopHoc?.SiSoToiDa ?? 0;
             if (hoSo.MaLop > 0)
             {
-                daXepLop = await _context.HoSoDangKyHocs
-                    .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == TrangThaiHoSo.DuocXepLop);
+                daXepLop = await _repo.DemSoDaXepLopAsync(hoSo.MaLop);
             }
 
             var viewModel = new XetDuyetHoSoViewModel
@@ -205,11 +139,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> XetDuyet(XetDuyetHoSoViewModel model)
         {
-            var hoSo = await _context.HoSoDangKyHocs
-                .Include(h => h.HocVien)
-                .Include(h => h.LopHoc)
-                    .ThenInclude(l => l!.ChuongTrinhDaoTao)
-                .FirstOrDefaultAsync(h => h.MaHoSo == model.MaHoSo);
+            var hoSo = await _repo.LayChiTietHoSoAsync(model.MaHoSo);
 
             if (hoSo == null)
             {
@@ -250,19 +180,18 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Controllers
                 int daXepLop = 0;
                 if (hoSo.MaLop > 0)
                 {
-                    daXepLop = await _context.HoSoDangKyHocs
-                        .CountAsync(h => h.MaLop == hoSo.MaLop && h.TrangThai == TrangThaiHoSo.DuocXepLop);
+                    daXepLop = await _repo.DemSoDaXepLopAsync(hoSo.MaLop);
                 }
                 model.SoLuongDaXepLop = daXepLop;
                 return View(model);
             }
 
-          
+
             hoSo.TrangThai = model.KetQuaDuyet;
             hoSo.NgayXuLy = DateTime.Now;
             hoSo.NhanXetXetDuyet = model.NhanXetXetDuyet;
 
-            await _context.SaveChangesAsync();
+            await _repo.LuuThayDoiAsync();
 
             TempData["SuccessMessage"] = $"Đã xét duyệt thành công hồ sơ #{hoSo.MaHoSo} ({model.KetQuaDuyet})!";
             return RedirectToAction(nameof(Index));
