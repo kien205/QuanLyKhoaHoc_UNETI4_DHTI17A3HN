@@ -12,8 +12,8 @@ using QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Data;
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261012081008_HoSoDangKy")]
-    partial class HoSoDangKy
+    [Migration("20261029135154_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,12 +69,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int?>("HocVienMaHocVien")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LopHocMaLop")
-                        .HasColumnType("int");
-
                     b.Property<string>("LyDoDangKy")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -102,9 +96,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.HasKey("MaHoSo");
 
-                    b.HasIndex("HocVienMaHocVien");
+                    b.HasIndex("MaHocVien");
 
-                    b.HasIndex("LopHocMaLop");
+                    b.HasIndex("MaLop");
 
                     b.ToTable("HoSoDangKyHocs");
                 });
@@ -231,9 +225,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("HoSoDangKyHocMaHoSo")
-                        .HasColumnType("int");
-
                     b.Property<int>("MaHoSo")
                         .HasColumnType("int");
 
@@ -250,7 +241,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
                     b.HasKey("MaLichKiemTraDauVao");
 
-                    b.HasIndex("HoSoDangKyHocMaHoSo");
+                    b.HasIndex("MaHoSo");
 
                     b.ToTable("LichKiemTraDauVaos");
                 });
@@ -358,13 +349,15 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HocVien", "HocVien")
                         .WithMany("HoSoDangKyHocs")
-                        .HasForeignKey("HocVienMaHocVien")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MaHocVien")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LopHoc", "LopHoc")
                         .WithMany("hoSoDangKyHoc")
-                        .HasForeignKey("LopHocMaLop")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MaLop")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("HocVien");
 
@@ -397,8 +390,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc", "HoSoDangKyHoc")
                         .WithMany("LichKiemTraDauVaos")
-                        .HasForeignKey("HoSoDangKyHocMaHoSo")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("MaHoSo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("HoSoDangKyHoc");
                 });
