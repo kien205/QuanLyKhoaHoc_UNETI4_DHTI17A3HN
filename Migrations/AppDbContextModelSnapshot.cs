@@ -222,9 +222,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("HoSoDangKyHocMaHoSo")
-                        .HasColumnType("int");
-
                     b.Property<int>("MaHoSo")
                         .HasColumnType("int");
 
@@ -240,8 +237,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.HasKey("MaLichKiemTraDauVao");
-
-                    b.HasIndex("HoSoDangKyHocMaHoSo");
 
                     b.HasIndex("MaHoSo");
 
@@ -390,13 +385,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 
             modelBuilder.Entity("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.LichKiemTraDauVao", b =>
                 {
-                    b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc", null)
-                        .WithMany("LichKiemTraDauVaos")
-                        .HasForeignKey("HoSoDangKyHocMaHoSo")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Models.HoSoDangKyHoc", "HoSoDangKyHoc")
-                        .WithMany()
+                        .WithMany("LichKiemTraDauVaos")
                         .HasForeignKey("MaHoSo")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
 {
     /// <inheritdoc />
-    public partial class AppDb : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,9 +34,9 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                     MaTaiKhoan = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TenDangNhap = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    MatKhau = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    MatKhau = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     HoTen = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     VaiTro = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     TrangThai = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -52,7 +52,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                     MaLop = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TenLop = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    chuongTrinhDaoTaoMaChuongTrinhDaoTao = table.Column<int>(type: "int", nullable: true),
+                    MaChuongTrinhDaoTao = table.Column<int>(type: "int", nullable: false),
                     SiSoToiDa = table.Column<int>(type: "int", nullable: false),
                     TrinhDoDauVao = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     DiemDauVao = table.Column<double>(type: "float", nullable: false),
@@ -66,8 +66,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     table.PrimaryKey("PK_LopHocs", x => x.MaLop);
                     table.ForeignKey(
-                        name: "FK_LopHocs_ChuongTrinhDaoTaos_chuongTrinhDaoTaoMaChuongTrinhDaoTao",
-                        column: x => x.chuongTrinhDaoTaoMaChuongTrinhDaoTao,
+                        name: "FK_LopHocs_ChuongTrinhDaoTaos_MaChuongTrinhDaoTao",
+                        column: x => x.MaChuongTrinhDaoTao,
                         principalTable: "ChuongTrinhDaoTaos",
                         principalColumn: "MaChuongTrinhDaoTao",
                         onDelete: ReferentialAction.Restrict);
@@ -110,9 +110,7 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                     MaHoSo = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MaHocVien = table.Column<int>(type: "int", nullable: false),
-                    HocVienMaHocVien = table.Column<int>(type: "int", nullable: true),
                     MaLop = table.Column<int>(type: "int", nullable: false),
-                    LopHocMaLop = table.Column<int>(type: "int", nullable: true),
                     NgayNop = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LyDoDangKy = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     GhiChu = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
@@ -124,14 +122,14 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     table.PrimaryKey("PK_HoSoDangKyHocs", x => x.MaHoSo);
                     table.ForeignKey(
-                        name: "FK_HoSoDangKyHocs_HocViens_HocVienMaHocVien",
-                        column: x => x.HocVienMaHocVien,
+                        name: "FK_HoSoDangKyHocs_HocViens_MaHocVien",
+                        column: x => x.MaHocVien,
                         principalTable: "HocViens",
                         principalColumn: "MaHocVien",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_HoSoDangKyHocs_LopHocs_LopHocMaLop",
-                        column: x => x.LopHocMaLop,
+                        name: "FK_HoSoDangKyHocs_LopHocs_MaLop",
+                        column: x => x.MaLop,
                         principalTable: "LopHocs",
                         principalColumn: "MaLop",
                         onDelete: ReferentialAction.Restrict);
@@ -167,7 +165,6 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                     MaLichKiemTraDauVao = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MaHoSo = table.Column<int>(type: "int", nullable: false),
-                    HoSoDangKyHocMaHoSo = table.Column<int>(type: "int", nullable: true),
                     ThoiGianBatDau = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ThoiGianKetThuc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     HinhThucKiemTra = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -180,8 +177,8 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 {
                     table.PrimaryKey("PK_LichKiemTraDauVaos", x => x.MaLichKiemTraDauVao);
                     table.ForeignKey(
-                        name: "FK_LichKiemTraDauVaos_HoSoDangKyHocs_HoSoDangKyHocMaHoSo",
-                        column: x => x.HoSoDangKyHocMaHoSo,
+                        name: "FK_LichKiemTraDauVaos_HoSoDangKyHocs_MaHoSo",
+                        column: x => x.MaHoSo,
                         principalTable: "HoSoDangKyHocs",
                         principalColumn: "MaHoSo",
                         onDelete: ReferentialAction.Restrict);
@@ -200,14 +197,14 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_HoSoDangKyHocs_HocVienMaHocVien",
+                name: "IX_HoSoDangKyHocs_MaHocVien",
                 table: "HoSoDangKyHocs",
-                column: "HocVienMaHocVien");
+                column: "MaHocVien");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HoSoDangKyHocs_LopHocMaLop",
+                name: "IX_HoSoDangKyHocs_MaLop",
                 table: "HoSoDangKyHocs",
-                column: "LopHocMaLop");
+                column: "MaLop");
 
             migrationBuilder.CreateIndex(
                 name: "IX_KetQuaXepLops_MaHoSo",
@@ -216,14 +213,20 @@ namespace QuanLyKhoaHoc_UNETI4_DHTI17A3HN.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_LichKiemTraDauVaos_HoSoDangKyHocMaHoSo",
+                name: "IX_LichKiemTraDauVaos_MaHoSo",
                 table: "LichKiemTraDauVaos",
-                column: "HoSoDangKyHocMaHoSo");
+                column: "MaHoSo");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LopHocs_chuongTrinhDaoTaoMaChuongTrinhDaoTao",
+                name: "IX_LopHocs_MaChuongTrinhDaoTao",
                 table: "LopHocs",
-                column: "chuongTrinhDaoTaoMaChuongTrinhDaoTao");
+                column: "MaChuongTrinhDaoTao");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaiKhoans_TenDangNhap",
+                table: "TaiKhoans",
+                column: "TenDangNhap",
+                unique: true);
         }
 
         /// <inheritdoc />
